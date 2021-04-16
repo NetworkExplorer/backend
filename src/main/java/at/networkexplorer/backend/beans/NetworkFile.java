@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileOwnerAttributeView;
@@ -27,6 +28,10 @@ public class NetworkFile {
     private String created;
     private String owner;
     private NetworkFile[] files;
+
+    public NetworkFile(Path path) throws IOException {
+        this(path.toFile());
+    }
 
     public NetworkFile(String name, FileType type, NetworkFile[] files) {
         this.name = name;

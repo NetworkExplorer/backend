@@ -1,6 +1,7 @@
 package at.networkexplorer.backend.api;
 
 import at.networkexplorer.backend.api.response.ApiError;
+import at.networkexplorer.backend.io.StorageFileNotFoundException;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
@@ -22,6 +23,7 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
         return buildResponseEntity(new ApiError(HttpStatus.BAD_REQUEST, error, ex));
     }
 
+    /*
     @ExceptionHandler(NullPointerException.class)
     protected ResponseEntity<Object> handleNullPointer(NullPointerException ex) {
         ApiError apiError = new ApiError(HttpStatus.NOT_FOUND);
@@ -34,6 +36,13 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
         apiError.setMessage(ex.getMessage());
         return buildResponseEntity(apiError);
     }
+
+    @ExceptionHandler(StorageFileNotFoundException.class)
+    protected ResponseEntity<Object> handleFileNotFound(StorageFileNotFoundException ex) {
+        ApiError apiError = new ApiError(HttpStatus.NOT_FOUND);
+        apiError.setMessage(ex.getMessage());
+        return buildResponseEntity(apiError);
+    }*/
 
     private ResponseEntity<Object> buildResponseEntity(ApiError apiError) {
         return new ResponseEntity<>(apiError, apiError.getStatus());
