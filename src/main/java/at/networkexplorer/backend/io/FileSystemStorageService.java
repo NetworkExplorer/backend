@@ -60,7 +60,7 @@ public class FileSystemStorageService implements StorageService {
     public NetworkFile[] loadAll(String path) {
         try {
             return Files.walk(Paths.get(rootLocation.toString(),path), 1)
-                    .filter(p -> !p.equals(this.rootLocation))
+                    .filter(p -> !p.equals(Paths.get(this.rootLocation.toString(), path)))
                     .map(this::map).collect(Collectors.toList()).toArray(NetworkFile[]::new);
         }
         catch (IOException e) {
