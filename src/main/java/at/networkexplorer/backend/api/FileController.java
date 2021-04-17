@@ -12,6 +12,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.HandlerMapping;
 
 import javax.servlet.http.HttpServletRequest;
@@ -119,5 +120,11 @@ public class FileController {
             e.printStackTrace();
             throw new NullPointerException("One or more folders does not exist!");
         }
+    }
+
+    @PostMapping("/upload/")
+    boolean fileUpload(@RequestParam("file")MultipartFile file, @RequestParam("path") String path) {
+        storageService.store(file, path);
+        return true;
     }
 }
