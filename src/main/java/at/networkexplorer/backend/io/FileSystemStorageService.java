@@ -66,7 +66,6 @@ public class FileSystemStorageService implements StorageService {
         catch (IOException e) {
             throw new StorageException("Failed to read stored files", e);
         }
-
     }
 
     private NetworkFile map(Path path) {
@@ -91,8 +90,7 @@ public class FileSystemStorageService implements StorageService {
                 return resource;
             }
             else {
-                throw new StorageFileNotFoundException(
-                        "Could not read file: " + filename);
+                throw new StorageFileNotFoundException("Could not read file: " + filename);
 
             }
         }
