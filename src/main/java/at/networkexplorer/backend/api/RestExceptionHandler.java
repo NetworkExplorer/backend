@@ -1,7 +1,8 @@
 package at.networkexplorer.backend.api;
 
 import at.networkexplorer.backend.api.response.ApiError;
-import at.networkexplorer.backend.io.StorageFileNotFoundException;
+import at.networkexplorer.backend.exceptions.StorageException;
+import at.networkexplorer.backend.exceptions.StorageFileNotFoundException;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
@@ -39,6 +40,13 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(StorageFileNotFoundException.class)
     protected ResponseEntity<Object> handleFileNotFound(StorageFileNotFoundException ex) {
         ApiError apiError = new ApiError(HttpStatus.NOT_FOUND);
+        apiError.setMessage(ex.getMessage());
+        return buildResponseEntity(apiError);
+    }
+
+    @ExceptionHandler(StorageException.class)
+    protected ResponseEntity<Object> handleStorageException(StorageException ex) {
+        ApiError apiError = new ApiError(HttpStatus.BAD_REQUEST);
         apiError.setMessage(ex.getMessage());
         return buildResponseEntity(apiError);
     }

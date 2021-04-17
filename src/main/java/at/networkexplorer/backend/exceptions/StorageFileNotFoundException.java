@@ -1,4 +1,4 @@
-package at.networkexplorer.backend.io;
+package at.networkexplorer.backend.exceptions;
 
 public class StorageFileNotFoundException extends StorageException {
 
