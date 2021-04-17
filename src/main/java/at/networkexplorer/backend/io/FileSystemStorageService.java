@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.FileSystemUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -40,10 +41,11 @@ public class FileSystemStorageService implements StorageService {
             Path destinationFile = this.rootLocation.resolve(
                     Paths.get(path,file.getOriginalFilename()))
                     .normalize().toAbsolutePath();
-            if (!destinationFile.getParent().equals(this.rootLocation.toAbsolutePath())) {
+            if (!destinationFile.toString().contains(rootLocation.toString())) {
                 // This is a security check
-                throw new StorageException("Cannot store file outside current directory.");
+                throw new StorageException("Cannot store file outside of root directory.");
             }
+            Files.createDirectories(destinationFile);
             try (InputStream inputStream = file.getInputStream()) {
                 Files.copy(inputStream, destinationFile,
                         StandardCopyOption.REPLACE_EXISTING);
