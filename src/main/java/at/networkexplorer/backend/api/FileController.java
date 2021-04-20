@@ -57,26 +57,29 @@ public class FileController {
         }
     }
 
-    @GetMapping("download/file/")
+    @GetMapping("download/file")
     @ResponseBody
     ResponseEntity<?> serveFile(@RequestParam(required = true) String file) {
         Resource res = storageService.loadAsResource(file);
         return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + res.getFilename() + "\"").body(res);
     }
 
-    @GetMapping("download/files/")
+    @GetMapping("download/files")
     @ResponseBody
     void serveFiles(@RequestParam(required = true) String[] files, HttpServletResponse response) {
-
         response.setContentType("application/zip");
         response.setStatus(200);
         response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=compressed.zip");
 
         try(ZipOutputStream zos = new ZipOutputStream(response.getOutputStream())) {
 
-            for (String file : files) {
+            for (String f : files) {
+                File file = storageService.load(f).toFile();
                 try {
-                    zipService.zipFile(new File(file), zos);
+                    if(file.isDirectory())
+                        zipService.zipDir(file.getPath(), zos);
+                    else
+                        zipService.zipFile(file, zos);
                 } catch (IOException e) {
                     continue;
                 }
@@ -90,11 +93,12 @@ public class FileController {
             }
             IOUtils.closeQuietly(zos);
         } catch(IOException e) {
-            throw new NullPointerException("One or more files does not exist!");
+            throw new NullPointerException("One or more files/folders does not exist!");
         }
 
     }
 
+    /*
     @GetMapping("download/folder/")
     @ResponseBody
     void serveFolder(@RequestParam(required = true) String[] folders, HttpServletResponse response) {
@@ -120,7 +124,7 @@ public class FileController {
             e.printStackTrace();
             throw new NullPointerException("One or more folders does not exist!");
         }
-    }
+    }*/
 
     @PostMapping("/upload/")
     boolean fileUpload(@RequestParam("file")MultipartFile file, @RequestParam("path") String path) {
