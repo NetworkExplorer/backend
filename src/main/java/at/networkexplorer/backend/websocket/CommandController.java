@@ -1,5 +1,7 @@
 package at.networkexplorer.backend.websocket;
 
+import org.springframework.boot.autoconfigure.gson.GsonAutoConfiguration;
+import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.handler.annotation.SendTo;
@@ -18,16 +20,29 @@ import java.util.stream.Collectors;
 @Controller
 public class CommandController {
 
+    @MessageMapping("/ping")
+    @SendTo("/topic/pong")
+    public String ping() throws Exception {
+        return "PONG!";
+    }
+
     @MessageMapping("/exec")
     @SendToUser("/queue/output")
-    public Command processCommand(@Payload String cmd) throws Exception {
+    public Command processCommand(@Payload String cmd, Principal principal) throws Exception {
         //TODO: working directory
         Process process = Runtime.getRuntime().exec("cmd.exe /c " + cmd); // https://stackabuse.com/executing-shell-commands-with-java/
         BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
 
-        //System.out.println(reader.lines().collect(Collectors.joining("\n")));
+        System.out.println(cmd);
+        System.out.println(reader.lines().collect(Collectors.joining("\n")));
 
         return new Command(cmd, reader.lines().collect(Collectors.joining("\n")));
+    }
+
+    @MessageExceptionHandler
+    @SendToUser("/queue/errors")
+    public String handleException(Throwable throwable) {
+        return throwable.getMessage();
     }
 
 }
