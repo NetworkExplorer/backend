@@ -20,12 +20,6 @@ import java.util.stream.Collectors;
 @Controller
 public class CommandController {
 
-    @MessageMapping("/ping")
-    @SendTo("/topic/pong")
-    public String ping() throws Exception {
-        return "PONG!";
-    }
-
     @MessageMapping("/exec")
     @SendToUser("/queue/output")
     public Command processCommand(String cmd) throws Exception {
@@ -35,7 +29,6 @@ public class CommandController {
         process.waitFor();
 
         String output = reader.lines().collect(Collectors.joining("\n"));
-        //System.out.println(output);
 
         return new Command(cmd, output);
     }

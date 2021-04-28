@@ -1,6 +1,9 @@
 package at.networkexplorer.backend;
 
 import at.networkexplorer.backend.websocket.Command;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,9 +15,13 @@ import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
 import org.springframework.web.socket.sockjs.client.SockJsClient;
 import org.springframework.web.socket.sockjs.client.WebSocketTransport;
+import org.w3c.dom.Text;
 
 import java.lang.reflect.Type;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.*;
 
 import static org.junit.Assert.*;
@@ -46,30 +53,6 @@ public class WebSocketTest {
     }
 
     @Test
-    public void pingWebsocket() throws Exception {
-        StompSession session = stompClient.connect(URL, new StompSessionHandlerAdapter() {})
-                .get(1, TimeUnit.SECONDS);
-
-        session.subscribe("/topic/pong", new StompFrameHandler() {
-            @Override
-            public Type getPayloadType(StompHeaders stompHeaders) {
-                System.out.println(stompHeaders.toString());
-                return String.class;
-            }
-
-            @Override
-            public void handleFrame(StompHeaders stompHeaders, Object o) {
-                System.out.println("Received ping: " + o);
-                blockingQueue.add((String) o);
-            }
-        });
-
-        session.send("/app/ping", "");
-        String res = blockingQueue.poll(1, TimeUnit.SECONDS);
-        assertNotNull(res);
-    }
-
-    @Test
     public void testCommand() throws Exception {
         stompClient.setMessageConverter(new MappingJackson2MessageConverter());
 
@@ -79,14 +62,15 @@ public class WebSocketTest {
         session.subscribe("/user/queue/output", new StompFrameHandler() {
             @Override
             public Type getPayloadType(StompHeaders stompHeaders) {
-                System.out.println(stompHeaders.toString());
-                return Command.class;
+                return LinkedHashMap.class;
             }
 
             @Override
             public void handleFrame(StompHeaders stompHeaders, Object payload) {
-                System.out.println("Received message: " + payload);
-                blockingQueue.add((String) payload);
+                System.out.println("Received Result: " + payload);
+                LinkedHashMap<String, String> res = (LinkedHashMap)payload;
+                Command cmd = new ObjectMapper().convertValue(res, Command.class);
+                blockingQueue.add(cmd.toString());
             }
         });
 
