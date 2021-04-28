@@ -28,15 +28,16 @@ public class CommandController {
 
     @MessageMapping("/exec")
     @SendToUser("/queue/output")
-    public Command processCommand(@Payload String cmd, Principal principal) throws Exception {
+    public Command processCommand(String cmd) throws Exception {
         //TODO: working directory
         Process process = Runtime.getRuntime().exec("cmd.exe /c " + cmd); // https://stackabuse.com/executing-shell-commands-with-java/
         BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+        process.waitFor();
 
-        System.out.println(cmd);
-        System.out.println(reader.lines().collect(Collectors.joining("\n")));
+        String output = reader.lines().collect(Collectors.joining("\n"));
+        //System.out.println(output);
 
-        return new Command(cmd, reader.lines().collect(Collectors.joining("\n")));
+        return new Command(cmd, output);
     }
 
     @MessageExceptionHandler
