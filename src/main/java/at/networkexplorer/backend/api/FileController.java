@@ -1,5 +1,6 @@
 package at.networkexplorer.backend.api;
 
+import at.networkexplorer.backend.api.response.Result;
 import at.networkexplorer.backend.beans.FileType;
 import at.networkexplorer.backend.beans.NetworkFile;
 import at.networkexplorer.backend.io.StorageService;
@@ -35,12 +36,14 @@ public class FileController {
     }
 
     @GetMapping("folder")
-    NetworkFile folder() {
-        return new NetworkFile("/", FileType.FOLDER, storageService.loadAll("/"));
+    Result folder() {
+        return new Result(
+                200,
+                new NetworkFile("/", FileType.FOLDER, storageService.loadAll("/")));
     }
 
     @GetMapping("folder/{folder}/**")
-    NetworkFile folder(@PathVariable("folder") String folder, HttpServletRequest request) {
+    Result folder(@PathVariable("folder") String folder, HttpServletRequest request) {
         final String parth =
                 request.getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE).toString();
         final String bestMatchingPattern =
@@ -51,7 +54,8 @@ public class FileController {
         String overallFolder = folder + File.separator + arguments;
 
         try {
-            return new NetworkFile(overallFolder, FileType.FOLDER, storageService.loadAll(overallFolder));
+            return new Result(200,
+                            new NetworkFile(overallFolder, FileType.FOLDER, storageService.loadAll(overallFolder)));
         }catch(NullPointerException e){
             throw new NullPointerException(String.format(Messages.FOLDER_NOT_FOUND, overallFolder));
         }
@@ -126,9 +130,16 @@ public class FileController {
         }
     }*/
 
-    @PostMapping("/upload/")
-    boolean fileUpload(@RequestParam("file")MultipartFile file, @RequestParam("path") String path) {
+    @PostMapping("/upload")
+    Result fileUpload(@RequestParam("file")MultipartFile file, @RequestParam("path") String path) {
         storageService.store(file, path);
-        return true;
+        return new Result(201, true, "Uploaded " + file.getName() + " to /" + path);
     }
+
+    @PutMapping("/rename")
+    Result fileRename(@RequestParam("path") String path, @RequestParam("newPath") String newPath) {
+        storageService.rename(path, newPath);
+        return new Result(201, true, "Moved from /" + path + " to /" + newPath);
+    }
+
 }

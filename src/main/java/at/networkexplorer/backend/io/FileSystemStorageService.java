@@ -13,6 +13,7 @@ import org.springframework.util.FileSystemUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -45,7 +46,8 @@ public class FileSystemStorageService implements StorageService {
                 // This is a security check
                 throw new StorageException("Cannot store file outside of root directory.");
             }
-            Files.createDirectories(destinationFile);
+            if(!Files.exists(destinationFile))
+                Files.createDirectories(destinationFile);
             try (InputStream inputStream = file.getInputStream()) {
                 Files.copy(inputStream, destinationFile,
                         StandardCopyOption.REPLACE_EXISTING);
@@ -102,6 +104,35 @@ public class FileSystemStorageService implements StorageService {
     @Override
     public void deleteAll() {
         FileSystemUtils.deleteRecursively(rootLocation.toFile());
+    }
+
+    @Override
+    public void rename(String path, String path2) {
+        try {
+            Path oldPath = this.rootLocation.resolve(
+                    Paths.get(path))
+                    .normalize().toAbsolutePath();
+            Path newPath = this.rootLocation.resolve(
+                    Paths.get(path2))
+                    .normalize().toAbsolutePath();
+            if (!oldPath.toString().contains(rootLocation.toString()) || !newPath.toString().contains(rootLocation.toString())) {
+                // This is a security check
+                throw new StorageException("Cannot operate outside of root directory.");
+            }
+
+            System.out.println("-------------------");
+            System.out.println(oldPath.toString());
+            System.out.println(newPath.toString());
+            System.out.println(oldPath.toFile().isDirectory() + " - " + newPath.toFile().isDirectory());
+
+            if(!Files.exists(newPath))
+                Files.createDirectories(newPath);
+
+            Files.move(oldPath, newPath, StandardCopyOption.REPLACE_EXISTING);
+        }
+        catch (IOException e) {
+            throw new StorageException("Failed to rename file.", e);
+        }
     }
 
     @Override
