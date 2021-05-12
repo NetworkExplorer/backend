@@ -39,13 +39,8 @@ public class FileSystemStorageService implements StorageService {
             if (file.isEmpty()) {
                 throw new StorageException("Failed to store empty file.");
             }
-            Path destinationFile = this.rootLocation.resolve(
-                    Paths.get(path,file.getOriginalFilename()))
-                    .normalize().toAbsolutePath();
-            if (!destinationFile.toString().contains(rootLocation.toString())) {
-                // This is a security check
-                throw new StorageException("Cannot store file outside of root directory.");
-            }
+            Path destinationFile = toAbsolute(Paths.get(path,file.getOriginalFilename()));
+
             if(!Files.exists(destinationFile))
                 Files.createDirectories(destinationFile);
             try (InputStream inputStream = file.getInputStream()) {
@@ -107,23 +102,26 @@ public class FileSystemStorageService implements StorageService {
     }
 
     @Override
+    public void delete(String path) { FileSystemUtils.deleteRecursively(toAbsolute(path).toFile()); }
+
+    public Path toAbsolute(String path) {
+        Path absolute = this.rootLocation.resolve(Paths.get(path)).normalize().toAbsolutePath();
+
+        if(!absolute.toString().contains(rootLocation.toString()))
+            throw new StorageException("Cannot operate outside of root directory.");
+
+        return absolute;
+    }
+
+    public Path toAbsolute(Path path) {
+        return toAbsolute(path.toString());
+    }
+
+    @Override
     public void rename(String path, String path2) {
         try {
-            Path oldPath = this.rootLocation.resolve(
-                    Paths.get(path))
-                    .normalize().toAbsolutePath();
-            Path newPath = this.rootLocation.resolve(
-                    Paths.get(path2))
-                    .normalize().toAbsolutePath();
-            if (!oldPath.toString().contains(rootLocation.toString()) || !newPath.toString().contains(rootLocation.toString())) {
-                // This is a security check
-                throw new StorageException("Cannot operate outside of root directory.");
-            }
-
-            System.out.println("-------------------");
-            System.out.println(oldPath.toString());
-            System.out.println(newPath.toString());
-            System.out.println(oldPath.toFile().isDirectory() + " - " + newPath.toFile().isDirectory());
+            Path oldPath = toAbsolute(path);
+            Path newPath = toAbsolute(path2);
 
             if(!Files.exists(newPath))
                 Files.createDirectories(newPath);
@@ -133,6 +131,11 @@ public class FileSystemStorageService implements StorageService {
         catch (IOException e) {
             throw new StorageException("Failed to rename file.", e);
         }
+    }
+
+    @Override
+    public void mkdir(String path) throws IOException {
+        Files.createDirectories(toAbsolute(path));
     }
 
     @Override

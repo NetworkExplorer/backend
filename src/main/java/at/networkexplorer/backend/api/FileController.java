@@ -20,6 +20,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.zip.ZipOutputStream;
 
 @CrossOrigin(origins = "http://localhost:15000", methods = {RequestMethod.GET, RequestMethod.DELETE, RequestMethod.HEAD, RequestMethod.OPTIONS, RequestMethod.POST})
@@ -140,6 +141,27 @@ public class FileController {
     Result fileRename(@RequestParam("path") String path, @RequestParam("newPath") String newPath) {
         storageService.rename(path, newPath);
         return new Result(201, true, "Moved from /" + path + " to /" + newPath);
+    }
+
+    @DeleteMapping("/delete")
+    @ResponseBody
+    Result fileDelete(@RequestBody String[] paths) {
+        for(String p : paths) {
+            storageService.delete(p);
+        }
+
+        return new Result(201, null, "Deleted successfully");
+    }
+
+    @PutMapping("/mkdir")
+    @ResponseBody
+    Result mkdir(@RequestParam String path) {
+        try {
+            storageService.mkdir(path);
+        } catch (IOException e) {
+            throw new IllegalArgumentException("Could not create folder: " + path);
+        }
+        return new Result(201, null, "Created " + path + " successfully");
     }
 
 }
