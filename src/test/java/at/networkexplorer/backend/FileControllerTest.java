@@ -32,8 +32,9 @@ import java.util.List;
 @WithMockUser
 public class FileControllerTest {
 
-    //https://www.springboottutorial.com/unit-testing-for-spring-boot-rest-services
-
+    /* HOW TO TEST
+     * https://www.springboottutorial.com/unit-testing-for-spring-boot-rest-services
+    */
     @Autowired
     private MockMvc mockMvc;
 
@@ -45,6 +46,10 @@ public class FileControllerTest {
     @MockBean
     private ZipService zipService;
 
+    /**
+     * Tests the `/api/v1/folder` Endpoint. Deletes all of the contents of the shared folder first.
+     * @throws Exception
+     */
     @Test
     public void listRoot() throws Exception{
         storageService.deleteAll();
@@ -61,6 +66,10 @@ public class FileControllerTest {
         JSONAssert.assertEquals(mapper.writeValueAsString(expected), result.getResponse().getContentAsString(), false);
     }
 
+    /**
+     * Tests the `/api/v1/delete` Endpoint. Creates a directory on the shared folder first.
+     * @throws Exception
+     */
     @Test
     public void deleteFolder() throws Exception {
         String path = "testFolder";

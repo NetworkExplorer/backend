@@ -26,6 +26,10 @@ class ApiControllerTest {
 	@Autowired
 	private MockMvc mockMvc;
 
+	/**
+	 * Tests whether the server is pingable or not.
+	 * @throws Exception
+	 */
 	@Test
 	public void isPingable() throws Exception {
 		RequestBuilder builder = MockMvcRequestBuilders.get("/api/v1/ping").accept(MediaType.ALL);

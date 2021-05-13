@@ -1,5 +1,6 @@
 package at.networkexplorer.backend.api;
 
+import at.networkexplorer.backend.api.response.Result;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
@@ -9,6 +10,11 @@ import org.springframework.web.servlet.ModelAndView;
 @RestController
 public class ApiController {
 
+    /**
+     * Mapping to check whether the server is online or not.
+     * @param model ModelMap of the request
+     * @return <a href="#{@link}">{@link ModelAndView}</a>
+     */
     @GetMapping("ping")
     ModelAndView pong(ModelMap model) {
         model.addAttribute("attribute", "redirectWithRedirectPrefix");

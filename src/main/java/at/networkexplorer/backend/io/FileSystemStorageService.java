@@ -39,7 +39,7 @@ public class FileSystemStorageService implements StorageService {
             if (file.isEmpty()) {
                 throw new StorageException("Failed to store empty file.");
             }
-            Path destinationFile = toAbsolute(Paths.get(path,file.getOriginalFilename()));
+            Path destinationFile = load(Paths.get(path,file.getOriginalFilename()).toString());
 
             if(!Files.exists(destinationFile))
                 Files.createDirectories(destinationFile);
@@ -61,7 +61,7 @@ public class FileSystemStorageService implements StorageService {
                     .map(this::map).collect(Collectors.toList()).toArray(NetworkFile[]::new);
         }
         catch (IOException e) {
-            throw new StorageException("Failed to read stored files", e);
+            throw new StorageFileNotFoundException("Failed to read stored files", e);
         }
     }
 
@@ -71,11 +71,6 @@ public class FileSystemStorageService implements StorageService {
         } catch (IOException e) {
             return null;
         }
-    }
-
-    @Override
-    public Path load(String filename) {
-        return rootLocation.resolve(filename);
     }
 
     @Override
@@ -102,9 +97,10 @@ public class FileSystemStorageService implements StorageService {
     }
 
     @Override
-    public void delete(String path) { FileSystemUtils.deleteRecursively(toAbsolute(path).toFile()); }
+    public void delete(String path) { FileSystemUtils.deleteRecursively(load(path).toFile()); }
 
-    public Path toAbsolute(String path) {
+    @Override
+    public Path load(String path) throws StorageException{
         Path absolute = this.rootLocation.resolve(Paths.get(path)).normalize().toAbsolutePath();
 
         if(!absolute.toString().contains(rootLocation.toString()))
@@ -113,15 +109,11 @@ public class FileSystemStorageService implements StorageService {
         return absolute;
     }
 
-    public Path toAbsolute(Path path) {
-        return toAbsolute(path.toString());
-    }
-
     @Override
     public void rename(String path, String path2) {
         try {
-            Path oldPath = toAbsolute(path);
-            Path newPath = toAbsolute(path2);
+            Path oldPath = load(path);
+            Path newPath = load(path2);
 
             if(!Files.exists(newPath))
                 Files.createDirectories(newPath);
@@ -135,7 +127,7 @@ public class FileSystemStorageService implements StorageService {
 
     @Override
     public void mkdir(String path) throws IOException {
-        Files.createDirectories(toAbsolute(path));
+        Files.createDirectories(load(path));
     }
 
     @Override
