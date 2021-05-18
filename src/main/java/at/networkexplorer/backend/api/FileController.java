@@ -22,9 +22,10 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.zip.ZipOutputStream;
 
-@CrossOrigin(origins = "http://localhost:15000", methods = {RequestMethod.GET, RequestMethod.DELETE, RequestMethod.HEAD, RequestMethod.OPTIONS, RequestMethod.POST})
+@CrossOrigin(origins = "http://localhost:15000", methods = {RequestMethod.GET, RequestMethod.DELETE, RequestMethod.HEAD, RequestMethod.OPTIONS, RequestMethod.POST, RequestMethod.PUT})
 @RequestMapping("api/v1")
 @RestController
 public class FileController {
@@ -159,6 +160,7 @@ public class FileController {
      * @return <a href="#{@link}">{@link Result}</a>
      */
     @PostMapping("/upload")
+    @ResponseBody
     Result fileUpload(@RequestParam("file")MultipartFile file, @RequestParam("path") String path) {
         storageService.store(file, path);
         return new Result(201, true, String.format(Messages.UPLOAD_SUCCESS, file.getName(), path));
@@ -171,6 +173,7 @@ public class FileController {
      * @return <a href="#{@link}">{@link Result}</a>
      */
     @PutMapping("/rename")
+    @ResponseBody
     Result fileRename(@RequestParam("path") String path, @RequestParam("newPath") String newPath) {
         storageService.rename(path, newPath);
         return new Result(201, true, String.format(Messages.MOVED_SUCCESS, path, newPath));
@@ -196,7 +199,7 @@ public class FileController {
      * @param path Relative path inside the shared folder
      * @return <a href="#{@link}">{@link Result}</a>
      */
-    @PutMapping("/mkdir")
+    @PostMapping("/mkdir")
     @ResponseBody
     Result mkdir(@RequestParam String path) {
         try {
