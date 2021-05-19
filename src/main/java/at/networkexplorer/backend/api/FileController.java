@@ -83,7 +83,7 @@ public class FileController {
     @ResponseBody
     ResponseEntity<?> serveFile(@RequestParam(required = true) String file) {
         Resource res = storageService.loadAsResource(file);
-        return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + res.getFilename() + "\"").body(res);
+        return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + res.getFilename()).body(res);
     }
 
     /**
@@ -96,7 +96,8 @@ public class FileController {
     void serveFiles(@RequestParam(required = true) String[] files, HttpServletResponse response) {
         response.setContentType("application/zip");
         response.setStatus(200);
-        response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=compressed.zip");
+        String filename = (files.length > 1 ? "compressed" : storageService.loadAsResource(files[0]).getFilename()) + ".zip";
+        response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename="+filename);
 
         try(ZipOutputStream zos = new ZipOutputStream(response.getOutputStream())) {
 
