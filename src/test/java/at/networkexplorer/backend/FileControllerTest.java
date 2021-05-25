@@ -8,19 +8,31 @@ import at.networkexplorer.backend.beans.NetworkFile;
 import at.networkexplorer.backend.io.FileSystemStorageService;
 import at.networkexplorer.backend.io.StorageService;
 import at.networkexplorer.backend.io.ZipService;
+import at.networkexplorer.backend.messages.Messages;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.IOUtils;
+import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.skyscreamer.jsonassert.JSONAssert;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.ApplicationContext;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.support.AnnotationConfigContextLoader;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.RequestBuilder;
@@ -50,9 +62,9 @@ public class FileControllerTest {
 
     @MockBean
     private StorageService storageService;
+
     @MockBean
     private ZipService zipService;
-
 
     /**
      * Tests the `/api/v1/folder` Endpoint. Deletes all of the contents of the shared folder first.
@@ -60,19 +72,24 @@ public class FileControllerTest {
      */
     @Test
     public void listRoot() throws Exception{
-        storageService.deleteAll();
+        NetworkFile[] empty = {};
+        Mockito.when(storageService.loadAll(Mockito.anyString())).thenReturn(empty);
+
         RequestBuilder builder = MockMvcRequestBuilders
                 .get("/api/v1/folder")
-                .accept(MediaType.APPLICATION_JSON);
+                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON);
 
         MvcResult result = mockMvc.perform(builder).andReturn();
 
         System.out.println(result.getResponse().getContentAsString());
 
-        Result expected = new Result(200, new NetworkFile("/", FileType.FOLDER, null));
+        Result expected = new Result(200, new NetworkFile("/", FileType.FOLDER, empty));
 
         JSONAssert.assertEquals(mapper.writeValueAsString(expected), result.getResponse().getContentAsString(), false);
     }
+
+    
 
     /**
      * Tests the `/api/v1/delete` Endpoint. Creates a directory on the shared folder first.
@@ -81,21 +98,16 @@ public class FileControllerTest {
     @Test
     public void deleteFolder() throws Exception {
         String path = "testFolder";
-        storageService.mkdir(path);
 
         RequestBuilder builder = MockMvcRequestBuilders
                 .delete("/api/v1/delete")
                 .accept(MediaType.APPLICATION_JSON)
-                .content("[ \"" + path + "\"]")
-                .contentType(MediaType.APPLICATION_JSON);
-
-        MvcResult result = mockMvc.perform(builder).andReturn();
-
-        System.out.println(result.getResponse().getContentAsString());
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("[ \"" + path + "\"]");
 
         Result expected = new Result(201, null, "Deleted successfully");
 
-        JSONAssert.assertEquals(mapper.writeValueAsString(expected), result.getResponse().getContentAsString(), false);
+        mockMvc.perform(builder).andExpect(MockMvcResultMatchers.content().json(mapper.writeValueAsString(expected))).andDo(MockMvcResultHandlers.print());
     }
 
     /**
@@ -104,32 +116,37 @@ public class FileControllerTest {
      */
     @Test
     public void uploadFile() throws Exception {
-        byte[] file = "test".getBytes();
+        MockMultipartFile file = new MockMultipartFile("file", "test.txt", "application/json", "This is a test".getBytes());
 
         RequestBuilder builder = MockMvcRequestBuilders
                 .multipart("/api/v1/upload")
-                .file("test.txt", file)
+                .file(file)
+                .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
                 .param("path", "/");
 
+        Result expected = new Result(201, true, String.format(Messages.UPLOAD_SUCCESS, file.getOriginalFilename(), "/"));
+
         mockMvc.perform(builder)
-                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(MockMvcResultMatchers.content().json(mapper.writeValueAsString(expected)))
                 .andDo(MockMvcResultHandlers.print());
     }
 
     @Test
     public void deleteFile() throws Exception {
-        //getClass().getClassLoader().getResource("test.txt").toURI()
-        byte[] file = IOUtils.toByteArray(getClass().getClassLoader().getResource("test.txt"));
-        storageService.store(new MockMultipartFile("test.txt", "test.txt", "text/plain", file), "/");
+        String[] path = {"test.txt"};
 
         RequestBuilder builder = MockMvcRequestBuilders
                 .delete("/api/v1/delete")
+                .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
-                .content("[test.txt]");
+                .content(mapper.writeValueAsString(path));
+
+        Result expected = new Result(201, null, Messages.DELETE_SUCCESS);
 
         mockMvc.perform(builder)
-                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().json(mapper.writeValueAsString(expected)))
                 .andDo(MockMvcResultHandlers.print());
     }
 

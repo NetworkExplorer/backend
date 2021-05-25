@@ -164,7 +164,7 @@ public class FileController {
     @ResponseBody
     Result fileUpload(@RequestParam("file")MultipartFile file, @RequestParam("path") String path) {
         storageService.store(file, path);
-        return new Result(201, true, String.format(Messages.UPLOAD_SUCCESS, file.getName(), path));
+        return new Result(201, true, String.format(Messages.UPLOAD_SUCCESS, file.getOriginalFilename(), path));
     }
 
     /**
