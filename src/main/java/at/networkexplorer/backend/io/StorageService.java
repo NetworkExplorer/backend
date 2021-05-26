@@ -67,4 +67,6 @@ public interface StorageService {
      */
     void mkdir(String path) throws IOException;
 
+    String[] suggest(String path, int max);
+
 }

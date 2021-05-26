@@ -12,5 +12,6 @@ public class Messages {
     public static final String CREATE_SUCCESS = "Created %s successfully";
     public static final String MOVED_SUCCESS = "Moved from /%s to /%s";
     public static final String UPLOAD_SUCCESS = "Uploaded %s to /%s";
+    public static final String DISCOVER = "Discover";
 
 }
