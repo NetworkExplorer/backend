@@ -23,6 +23,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
@@ -140,7 +141,7 @@ public class FileSystemStorageService implements StorageService {
     }
 
     private String discMap(Path path) {
-        return rootLocation.relativize(path).toString();
+        return "/"+rootLocation.relativize(path).toString().replaceAll(Pattern.quote(File.separator), "/");
     }
 
     @Override
