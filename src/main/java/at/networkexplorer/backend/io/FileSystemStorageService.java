@@ -1,6 +1,7 @@
 package at.networkexplorer.backend.io;
 
 import at.networkexplorer.backend.beans.NetworkFile;
+import at.networkexplorer.backend.bl.SuggestionComparator;
 import at.networkexplorer.backend.component.Config;
 import at.networkexplorer.backend.exceptions.StorageException;
 import at.networkexplorer.backend.exceptions.StorageFileNotFoundException;
@@ -21,12 +22,15 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
 public class FileSystemStorageService implements StorageService {
 
     private final Path rootLocation;
+    private List<String> discoveries = new ArrayList<>();
 
     @Autowired
     public FileSystemStorageService(ApplicationContext applicationContext) {
@@ -130,6 +134,21 @@ public class FileSystemStorageService implements StorageService {
         Files.createDirectories(load(path));
     }
 
+    private void discover() throws IOException {
+        List<String> temp = Files.walk(rootLocation).filter(p -> p.toFile().isDirectory()).map(this::discMap).collect(Collectors.toList());
+        Collections.sort(temp, new SuggestionComparator());
+        this.discoveries = temp;
+    }
+
+    private String discMap(Path path) {
+        return "/"+rootLocation.relativize(path).toString().replaceAll(Pattern.quote(File.separator), "/");
+    }
+
+    @Override
+    public String[] suggest(String path, int max) {
+        return discoveries.stream().filter(s -> s.contains(path)).limit(max).toArray(String[]::new);
+    }
+
     @Override
     public void init() {
         try {
@@ -138,5 +157,19 @@ public class FileSystemStorageService implements StorageService {
         catch (IOException e) {
             throw new StorageException("Could not initialize storage", e);
         }
+
+        // Discover directory every 5 seconds
+        Timer discoverer = new Timer();
+        discoverer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                try {
+                    discover();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }, 0, 5000);
     }
+
 }

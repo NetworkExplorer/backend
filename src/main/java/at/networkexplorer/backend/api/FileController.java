@@ -22,7 +22,9 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.zip.ZipOutputStream;
 
 @CrossOrigin(origins = "http://localhost:15000", methods = {RequestMethod.GET, RequestMethod.DELETE, RequestMethod.HEAD, RequestMethod.OPTIONS, RequestMethod.POST, RequestMethod.PUT})
@@ -36,6 +38,8 @@ public class FileController {
     public FileController(StorageService storageService, ZipService zipService) {
         this.storageService = storageService;
         this.zipService = zipService;
+        storageService.init();
+        zipService.init();
     }
 
     /**
@@ -126,34 +130,6 @@ public class FileController {
 
     }
 
-    /*
-    @GetMapping("download/folder/")
-    @ResponseBody
-    void serveFolder(@RequestParam(required = true) String[] folders, HttpServletResponse response) {
-        response.setContentType("application/zip");
-        response.setStatus(200);
-        response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=compressed.zip");
-
-        try(ZipOutputStream zos = new ZipOutputStream(response.getOutputStream())) {
-
-            for (String f : folders) {
-                File file = storageService.load(f).toFile();
-                zipService.zipDir(file.getPath(), zos);
-            }
-
-            try {
-                zos.finish();
-                zos.flush();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            IOUtils.closeQuietly(zos);
-        } catch(IOException e) {
-            e.printStackTrace();
-            throw new NullPointerException("One or more folders does not exist!");
-        }
-    }*/
-
     /**
      * Mapping to upload a file to the given directory.
      * @param file Multipart file
@@ -209,6 +185,18 @@ public class FileController {
             throw new IllegalArgumentException(String.format(Messages.COULD_NOT_CREATE, path));
         }
         return new Result(201, null, String.format(Messages.CREATE_SUCCESS, path));
+    }
+
+    /**
+     * Mapping for the autocomplete suggestions when navigating
+     * @param path Relative path inside the shared folder
+     * @param max Maximum Results to return
+     * @return <a href="#{@link}">{@link Result}</a> An array of suggestions
+     */
+    @GetMapping("/suggest")
+    @ResponseBody
+    Result suggest(@RequestParam String path, @RequestParam int max) {
+        return new Result(200, storageService.suggest(path, max), Messages.DISCOVER);
     }
 
 }
