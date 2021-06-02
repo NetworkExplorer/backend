@@ -1,5 +1,8 @@
 package at.networkexplorer.backend.websocket;
 
+import at.networkexplorer.backend.io.FileSystemStorageService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
@@ -19,8 +22,11 @@ import java.util.Map;
 @EnableWebSocket
 public class WebSocketConfig implements WebSocketConfigurer {
 
+    @Autowired
+    private ApplicationContext applicationContext;
+
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        registry.addHandler(new SocketHandler(), "/exec");
+        registry.addHandler(new SocketHandler(new FileSystemStorageService(applicationContext)), "/exec");
     }
 }

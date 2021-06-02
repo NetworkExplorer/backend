@@ -105,6 +105,8 @@ public class FileSystemStorageService implements StorageService {
 
     @Override
     public Path load(String path) throws StorageException{
+        if(path.equals("/"))
+            path = "";
         Path absolute = this.rootLocation.resolve(Paths.get(path)).normalize().toAbsolutePath();
 
         if(!absolute.toString().contains(rootLocation.toString()))
