@@ -1,10 +1,7 @@
 package at.networkexplorer.backend.websocket;
 
 import at.networkexplorer.backend.api.response.ApiError;
-import at.networkexplorer.backend.exceptions.StorageException;
 import at.networkexplorer.backend.io.StorageService;
-import at.networkexplorer.backend.io.ZipService;
-import at.networkexplorer.backend.pojos.Command;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import org.springframework.beans.factory.annotation.Autowired;

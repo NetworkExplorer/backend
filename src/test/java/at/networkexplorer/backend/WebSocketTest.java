@@ -2,21 +2,22 @@ package at.networkexplorer.backend;
 
 import at.networkexplorer.backend.pojos.Command;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.java_websocket.client.WebSocketClient;
+import org.java_websocket.handshake.ServerHandshake;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.messaging.converter.MappingJackson2MessageConverter;
-import org.springframework.messaging.simp.stomp.*;
-import org.springframework.web.socket.client.standard.StandardWebSocketClient;
-import org.springframework.web.socket.messaging.WebSocketStompClient;
-import org.springframework.web.socket.sockjs.client.SockJsClient;
-import org.springframework.web.socket.sockjs.client.WebSocketTransport;
 
 import java.lang.reflect.Type;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.concurrent.*;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import static org.junit.Assert.*;
 
@@ -25,52 +26,49 @@ public class WebSocketTest {
 
     @Value("${local.server.port}")
     private int port;
-    static String URL;
 
+    WebSocketClient client;
     BlockingQueue<String> blockingQueue;
-    WebSocketStompClient stompClient;
 
     @BeforeEach
     public void setup() {
         blockingQueue = new LinkedBlockingDeque<>();
-        stompClient = new WebSocketStompClient(new SockJsClient(List.of(new WebSocketTransport(new StandardWebSocketClient()))));
-        stompClient.setMessageConverter(new MappingJackson2MessageConverter());
+        try {
+            client = new WebSocketClient(new URI("ws://localhost:" + port + "/exec")) {
+                @Override
+                public void onOpen(ServerHandshake serverHandshake) {
+                    System.out.println("Connected!");
+                }
 
-        URL = "ws://localhost:" + port + "/websocket";
-    }
+                @Override
+                public void onMessage(String s) {
+                    blockingQueue.add(s);
+                }
 
-    @Test
-    public void testConnection() throws Exception {
-        StompSession session = stompClient.connect(URL, new StompSessionHandlerAdapter() {})
-                .get(1, TimeUnit.SECONDS);
-        assertTrue(session.isConnected());
+                @Override
+                public void onClose(int i, String s, boolean b) {
+                    System.out.println(s);
+                }
+
+                @Override
+                public void onError(Exception e) {
+                    e.printStackTrace();
+                }
+            };
+            client.connect();
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
     }
 
     @Test
     public void testCommand() throws Exception {
-        stompClient.setMessageConverter(new MappingJackson2MessageConverter());
-
-        StompSession session = stompClient.connect(URL, new StompSessionHandlerAdapter() {})
-                .get(1, TimeUnit.SECONDS);
-
-        session.subscribe("/user/queue/output", new StompFrameHandler() {
-            @Override
-            public Type getPayloadType(StompHeaders stompHeaders) {
-                return LinkedHashMap.class;
-            }
-
-            @Override
-            public void handleFrame(StompHeaders stompHeaders, Object payload) {
-                System.out.println("Received Result: " + payload);
-                LinkedHashMap<String, String> res = (LinkedHashMap)payload;
-                Command cmd = new ObjectMapper().convertValue(res, Command.class);
-                blockingQueue.add(cmd.toString());
-            }
-        });
-
-        session.send("/app/exec", "dir");
+        while(!client.isOpen() && !client.isClosed());
+        client.send("{'cwd': '/', 'cmd': 'dir'}");
         String res = blockingQueue.poll(1, TimeUnit.SECONDS);
+        System.out.println(res);
         assertNotNull(res);
+        client.close();
     }
 
 }
