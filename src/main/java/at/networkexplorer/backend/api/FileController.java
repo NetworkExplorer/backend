@@ -100,7 +100,7 @@ public class FileController {
     void serveFiles(@RequestParam(required = true) String[] files, HttpServletResponse response) {
         response.setContentType("application/zip");
         response.setStatus(200);
-        String filename = (files.length > 1 ? "compressed" : storageService.loadAsResource(files[0]).getFilename()) + ".zip";
+        String filename = (files.length > 1 ? "compressed" : storageService.load(files[0]).getFileName()) + ".zip";
         response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename="+filename);
 
         try(ZipOutputStream zos = new ZipOutputStream(response.getOutputStream())) {
