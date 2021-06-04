@@ -18,9 +18,4 @@ public class ApiErrorController implements ErrorController {
         apiError.setMessage("Mapping not found");
         return new ResponseEntity<>(apiError, apiError.getStatus());
     }
-
-    @Override
-    public String getErrorPath() {
-        return null;
-    }
 }
