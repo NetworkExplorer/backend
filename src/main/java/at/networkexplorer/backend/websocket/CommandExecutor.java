@@ -63,13 +63,18 @@ public class CommandExecutor {
                         session.sendMessage(new TextMessage(mapper.writeValueAsString(new Command(cmd, line, true))));
 
                 }
-
-                if(session.isOpen()) session.sendMessage(new TextMessage(mapper.writeValueAsString(new Command(cmd, null, false, true))));
             } catch(IOException e) {
                 e.printStackTrace();
             } finally {
                 process.destroy();
                 processes.remove(session.getId());
+                if(session.isOpen()) {
+                    try {
+                        session.sendMessage(new TextMessage(mapper.writeValueAsString(new Command(cmd, null, false, true))));
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
             }
         });
         thread.start();
@@ -81,8 +86,11 @@ public class CommandExecutor {
      * Stops the execution of a command by destroying a process.
      * @param session WebSocketSession of the client
      */
-    public static void stop(WebSocketSession session) {
+    public static void stop(WebSocketSession session) throws IOException {
         Process process = processes.remove(session.getId());
+        process.getInputStream().close();
+        process.getOutputStream().close();
+        process.getErrorStream().close();
         process.destroy();
     }
 
