@@ -50,16 +50,16 @@ public class CommandExecutor {
 
         Thread thread = new Thread(() -> {
             try {
-                String line = null, line2 = null;
-                while ((line = reader.readLine()) != null || (line2 = error.readLine()) != null) {
+                String line = null, err = null;
+                while ((line = reader.readLine()) != null || (err = error.readLine()) != null) {
                     if(!session.isOpen())
                         break;
 
                     if (line != null)
                         session.sendMessage(new TextMessage(mapper.writeValueAsString(new Command(cmd, line, false))));
 
-                    if (line2 != null)
-                        session.sendMessage(new TextMessage(mapper.writeValueAsString(new Command(cmd, line, true))));
+                    if (err != null)
+                        session.sendMessage(new TextMessage(mapper.writeValueAsString(new Command(cmd, err, true))));
 
                 }
                 process.destroy();

@@ -42,6 +42,7 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
     protected ResponseEntity<Object> handleFileNotFound(StorageFileNotFoundException ex) {
         ApiError apiError = new ApiError(HttpStatus.NOT_FOUND);
         apiError.setMessage(ex.getMessage());
+        apiError.setDebugMessage(ex.getCause().getMessage());
         return buildResponseEntity(apiError);
     }
 
@@ -49,6 +50,7 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
     protected ResponseEntity<Object> handleStorageException(StorageException ex) {
         ApiError apiError = new ApiError(HttpStatus.BAD_REQUEST);
         apiError.setMessage(ex.getMessage());
+        apiError.setDebugMessage(ex.getCause().getMessage());
         return buildResponseEntity(apiError);
     }
 
