@@ -9,9 +9,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -31,17 +30,18 @@ public class CommandExecutor {
      * @return False if a process for that session already exists; True if process was started
      * @throws IOException
      */
-    public static boolean processCommand(WebSocketSession session, String cmd, String cwd) throws IOException {
+    public static boolean processCommand(WebSocketSession session, String cmd, Path cwd) throws IOException {
 
         if(processes.get(session.getId()) != null)
             return false;
 
         String prefix = "";
         if (OSUtil.getOS() == OSUtil.OS.WINDOWS)
-            prefix = "cmd.exe /c cd " + cwd + " && ";
+            prefix = "cmd.exe /c ";
         else
-            prefix = "/bin/bash -i -l cd " + cwd + " && ";
-        Process process = Runtime.getRuntime().exec((prefix + cmd)); // https://stackabuse.com/executing-shell-commands-with-java/
+            prefix = "/bin/bash -i -l ";
+
+        Process process = Runtime.getRuntime().exec(prefix + cmd, null, cwd.toFile()); // https://stackabuse.com/executing-shell-commands-with-java/
 
         processes.put(session.getId(), process);
 
@@ -51,8 +51,7 @@ public class CommandExecutor {
         Thread thread = new Thread(() -> {
             try {
                 String line = null, line2 = null;
-                while (process.isAlive() || (line = reader.readLine()) != null || (line2 = error.readLine()) != null) {
-
+                while ((line = reader.readLine()) != null || (line2 = error.readLine()) != null) {
                     if(!session.isOpen())
                         break;
 
@@ -63,6 +62,8 @@ public class CommandExecutor {
                         session.sendMessage(new TextMessage(mapper.writeValueAsString(new Command(cmd, line, true))));
 
                 }
+                process.destroy();
+                processes.remove(session.getId());
             } catch(IOException e) {
                 e.printStackTrace();
             } finally {

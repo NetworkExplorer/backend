@@ -42,12 +42,12 @@ public class SocketHandler extends TextWebSocketHandler {
 		}*/
         try {
             if(value.get("cmd") != null)
-                CommandExecutor.processCommand(session, value.get("cmd").toString(), storageService.load(value.get("cwd").toString()).toString());
+                CommandExecutor.processCommand(session, value.get("cmd").toString(), storageService.load(value.get("cwd").toString()));
             else if(value.get("exit") != null)
                 CommandExecutor.stop(session);
         } catch (Exception e) {
             session.sendMessage(new TextMessage(mapper.writeValueAsString(new ApiError(HttpStatus.INTERNAL_SERVER_ERROR, "ERROR: Could not execute command", e))));
-            //e.printStackTrace();
+            e.printStackTrace();
         }
     }
 

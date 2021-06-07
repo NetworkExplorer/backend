@@ -11,7 +11,7 @@
 	<artifactId>backend</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>backend</name>
-	<description>NetworkExploerer backend</description>
+	<description>NetworkExplorer backend</description>
 
 	<properties>
 		<java.version>11</java.version>
@@ -19,7 +19,7 @@
 
 	<dependencies>
 
-		<!--		Säcuriti-->
+		<!-- Säcuriti -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-oauth2-client</artifactId>
@@ -71,7 +71,7 @@
 			<version>1.5.1</version>
 		</dependency>
 
-		<!--		json-->
+		<!-- json-->
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
@@ -123,7 +123,7 @@
 			<scope>test</scope>
 		</dependency>
 
-		<!-- IOUTILS -->
+		<!-- IO UTILS -->
 		<dependency>
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
