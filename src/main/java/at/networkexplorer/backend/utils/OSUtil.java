@@ -8,6 +8,10 @@ public class OSUtil {
 
     private static OS os = null;
 
+    /**
+     * Get the OperatingSystem of the host computer
+     * @return {@link at.networkexplorer.backend.utils.OSUtil.OS}
+     */
     public static OS getOS() {
         if (os == null) {
             String operSys = System.getProperty("os.name").toLowerCase();

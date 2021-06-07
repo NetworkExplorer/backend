@@ -2,7 +2,6 @@ package at.networkexplorer.backend.io;
 
 import at.networkexplorer.backend.beans.NetworkFile;
 import at.networkexplorer.backend.bl.SuggestionComparator;
-import at.networkexplorer.backend.component.Config;
 import at.networkexplorer.backend.exceptions.StorageException;
 import at.networkexplorer.backend.exceptions.StorageFileNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,15 +33,16 @@ public class FileSystemStorageService implements StorageService {
 
     @Autowired
     public FileSystemStorageService(ApplicationContext applicationContext) {
-        this.rootLocation = Paths.get(applicationContext.getBean(Config.class).getPath());
+        this.rootLocation = Paths.get(applicationContext.getEnvironment().getProperty("network.path"));
     }
 
     @Override
     public void store(MultipartFile file, String path) {
         try {
+            /* DONT CHECK - YOU NEVER KNOW
             if (file.isEmpty()) {
                 throw new StorageException("Failed to store empty file.");
-            }
+            }*/
             Path destinationFile = load(Paths.get(path,file.getOriginalFilename()).toString());
 
             if(!Files.exists(destinationFile))

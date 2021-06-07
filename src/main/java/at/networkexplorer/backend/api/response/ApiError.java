@@ -84,15 +84,3 @@ public class ApiError {
 abstract class ApiSubError {
 
 }
-
-class ApiNoFolderError extends ApiSubError {
-    private String object;
-    private String field;
-    private Object rejectedValue;
-    private String message;
-
-    public ApiNoFolderError(String object, String message) {
-        this.object = object;
-        this.message = message;
-    }
-}

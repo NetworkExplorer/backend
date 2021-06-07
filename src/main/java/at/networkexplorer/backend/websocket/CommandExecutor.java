@@ -32,22 +32,25 @@ public class CommandExecutor {
      */
     public static boolean processCommand(WebSocketSession session, String cmd, Path cwd) throws IOException {
 
+        // only one command at a time per session
         if(processes.get(session.getId()) != null)
             return false;
 
         String prefix = "";
         if (OSUtil.getOS() == OSUtil.OS.WINDOWS)
-            prefix = "cmd.exe /c ";
+            prefix = "cmd.exe /c \"%s\"";
         else
-            prefix = "/bin/bash -i -l ";
+            prefix = "/bin/bash -c \"%s\"";
 
-        Process process = Runtime.getRuntime().exec(prefix + cmd, null, cwd.toFile()); // https://stackabuse.com/executing-shell-commands-with-java/
+        // creates a subprocess and executes the given command in the cwd directory
+        Process process = Runtime.getRuntime().exec(String.format(prefix, cmd), null, cwd.toFile()); // https://stackabuse.com/executing-shell-commands-with-java/
 
         processes.put(session.getId(), process);
 
         BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
         BufferedReader error = new BufferedReader(new InputStreamReader(process.getErrorStream()));
 
+        // use thread so we don't block the main thread
         Thread thread = new Thread(() -> {
             try {
                 String line = null, err = null;
@@ -78,7 +81,7 @@ public class CommandExecutor {
                 }
             }
         });
-        thread.start();
+        thread.start(); // use start to actually start a new thread
 
         return true;
     }

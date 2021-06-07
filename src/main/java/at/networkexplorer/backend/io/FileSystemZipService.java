@@ -1,6 +1,5 @@
 package at.networkexplorer.backend.io;
 
-import at.networkexplorer.backend.component.Config;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -22,7 +21,7 @@ public class FileSystemZipService implements ZipService {
 
     @Autowired
     FileSystemZipService(ApplicationContext applicationContext) {
-        this.rootLocation = Paths.get(applicationContext.getBean(Config.class).getPath());
+        this.rootLocation = Paths.get(applicationContext.getEnvironment().getProperty("network.path"));
     }
 
     @Override
