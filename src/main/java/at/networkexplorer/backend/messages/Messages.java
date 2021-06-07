@@ -14,4 +14,8 @@ public class Messages {
     public static final String UPLOAD_SUCCESS = "Uploaded %s to /%s";
     public static final String DISCOVER = "Discover";
 
+    public static final String CREATED_ACCOUNT = "User created successfully";
+    public static final String USER_CREATE_ERROR = "Cannot create user '%s'";
+    public static final String USERNAME_NOT_FOUND = "User not found with username %s";
+
 }
