@@ -8,6 +8,7 @@ import java.util.function.Function;
 
 import at.networkexplorer.backend.model.User;
 import at.networkexplorer.backend.pojos.Login;
+import io.jsonwebtoken.SignatureException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;

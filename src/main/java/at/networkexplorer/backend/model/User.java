@@ -26,6 +26,10 @@ public class User {
         return username.equals(user.username);
     }
 
+    public boolean hasPermission(UserPermission permission) {
+        return permissions.contains(permission);
+    }
+
     @Override
     public int hashCode() {
         return Objects.hash(username);

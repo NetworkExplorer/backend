@@ -3,15 +3,22 @@ package at.networkexplorer.backend.api;
 import at.networkexplorer.backend.api.response.Result;
 import at.networkexplorer.backend.beans.FileType;
 import at.networkexplorer.backend.beans.NetworkFile;
+import at.networkexplorer.backend.beans.UserPermission;
+import at.networkexplorer.backend.config.JwtAuthenticationEntryPoint;
+import at.networkexplorer.backend.exceptions.InsufficientPermissionsException;
 import at.networkexplorer.backend.exceptions.StorageFileNotFoundException;
 import at.networkexplorer.backend.io.StorageService;
 import at.networkexplorer.backend.io.ZipService;
 import at.networkexplorer.backend.messages.Messages;
+import at.networkexplorer.backend.model.User;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationServiceException;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -33,6 +40,9 @@ import java.util.zip.ZipOutputStream;
 public class FileController {
     private final StorageService storageService;
     private final ZipService zipService;
+
+    @Autowired
+    private JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
     @Autowired
     public FileController(StorageService storageService, ZipService zipService) {
@@ -139,6 +149,10 @@ public class FileController {
     @PostMapping("/upload")
     @ResponseBody
     Result fileUpload(@RequestParam("file")MultipartFile file, @RequestParam("path") String path) {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if(!user.hasPermission(UserPermission.WRITE)) {
+            throw new InsufficientPermissionsException(String.format(Messages.MISSING_PERMISSION, UserPermission.WRITE));
+        }
         storageService.store(file, path);
         return new Result(201, true, String.format(Messages.UPLOAD_SUCCESS, file.getOriginalFilename(), path));
     }
@@ -152,6 +166,10 @@ public class FileController {
     @PutMapping("/rename")
     @ResponseBody
     Result fileRename(@RequestParam("path") String path, @RequestParam("newPath") String newPath) {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if(!user.hasPermission(UserPermission.WRITE)) {
+            throw new InsufficientPermissionsException(String.format(Messages.MISSING_PERMISSION, UserPermission.WRITE));
+        }
         storageService.rename(path, newPath);
         return new Result(201, true, String.format(Messages.MOVED_SUCCESS, path, newPath));
     }
@@ -164,6 +182,10 @@ public class FileController {
     @DeleteMapping("/delete")
     @ResponseBody
     Result fileDelete(@RequestBody String[] paths) {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if(!user.hasPermission(UserPermission.WRITE)) {
+            throw new InsufficientPermissionsException(String.format(Messages.MISSING_PERMISSION, UserPermission.WRITE));
+        }
         for(String p : paths) {
             storageService.delete(p);
         }
@@ -179,6 +201,10 @@ public class FileController {
     @PostMapping("/mkdir")
     @ResponseBody
     Result mkdir(@RequestParam String path) {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if(!user.hasPermission(UserPermission.WRITE)) {
+            throw new InsufficientPermissionsException(String.format(Messages.MISSING_PERMISSION, UserPermission.WRITE));
+        }
         try {
             storageService.mkdir(path);
         } catch (IOException e) {

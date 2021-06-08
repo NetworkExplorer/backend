@@ -1,10 +1,18 @@
 package at.networkexplorer.backend.websocket;
 
 import at.networkexplorer.backend.api.response.ApiError;
+import at.networkexplorer.backend.beans.UserPermission;
+import at.networkexplorer.backend.config.JwtTokenUtil;
+import at.networkexplorer.backend.db.FileDB;
+import at.networkexplorer.backend.io.FileSystemStorageService;
 import at.networkexplorer.backend.io.StorageService;
+import at.networkexplorer.backend.model.User;
+import at.networkexplorer.backend.service.JwtUserDetailsService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
+import io.jsonwebtoken.SignatureException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
@@ -14,6 +22,7 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -21,25 +30,45 @@ import java.util.concurrent.CopyOnWriteArrayList;
 @Component
 public class SocketHandler extends TextWebSocketHandler {
 
-    List<WebSocketSession> sessions = new CopyOnWriteArrayList<>();
+    // keep log of who has provided a valid JWT and has the right permissions
+    Map<WebSocketSession, Boolean> sessions = new HashMap();
     ObjectMapper mapper = new ObjectMapper();
 
-    private final StorageService storageService;
+    @Autowired
+    JwtTokenUtil jwtTokenUtil;
 
     @Autowired
-    public SocketHandler(StorageService storageService) {
-        this.storageService = storageService;
-        storageService.init();
-    }
+    private JwtUserDetailsService jwtUserDetailsService;
+
+    @Autowired
+    private StorageService storageService;
 
     @Override
     public void handleTextMessage(WebSocketSession session, TextMessage message)
             throws InterruptedException, IOException {
         Map value = new Gson().fromJson(message.getPayload(), Map.class);
-		/*for(WebSocketSession webSocketSession : sessions) {
-			Map value = new Gson().fromJson(message.getPayload(), Map.class);
-			webSocketSession.sendMessage(new TextMessage("Hello " + value.get("name") + " !"));
-		}*/
+        try {
+            if (!sessions.get(session)) {
+                String bearer = value.get("bearer") == null ? null : value.get("bearer").toString();
+                User user = jwtUserDetailsService.loadUserByUsername(jwtTokenUtil.getUsernameFromToken(bearer));
+
+                if (!user.getPermissions().contains(UserPermission.TERMINAL)) {
+                    session.sendMessage(new TextMessage(mapper.writeValueAsString(new ApiError(HttpStatus.BAD_REQUEST, "You do not have permission to execute commands!", new Throwable("Insufficient permissions")))));
+                    return;
+                }
+
+                if (bearer != null && jwtTokenUtil.validateToken(bearer, user)) {
+                    sessions.put(session, true);
+                } else {
+                    session.sendMessage(new TextMessage(mapper.writeValueAsString(new ApiError(HttpStatus.BAD_REQUEST, "Please provide a valid bearer token!", new Throwable("Invalid or missing JWT")))));
+                    return;
+                }
+            }
+        } catch(IllegalArgumentException | SignatureException e) {
+            session.sendMessage(new TextMessage(mapper.writeValueAsString(new ApiError(HttpStatus.BAD_REQUEST, "Invalid Bearer token", e))));
+            return;
+        }
+
         try {
             if(value.get("cmd") != null)
                 CommandExecutor.processCommand(session, value.get("cmd").toString(), storageService.load(value.get("cwd").toString()));
@@ -53,8 +82,7 @@ public class SocketHandler extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
-        //the messages will be broadcasted to all users.
-        sessions.add(session);
+        sessions.put(session, false);
     }
 
     @Override

@@ -14,10 +14,10 @@ import java.util.Map;
 public class WebSocketConfig implements WebSocketConfigurer {
 
     @Autowired
-    private ApplicationContext applicationContext;
+    SocketHandler socketHandler;
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        registry.addHandler(new SocketHandler(new FileSystemStorageService(applicationContext)), "/exec").setAllowedOriginPatterns("http://localhost:*", "http://127.#{1,3}.#{1,3}.#{1,3}:*", "http://10.#{1,3}.#{1,3}.#{1,3}", "http://192.168.#{1,3}.#{1,3}", "http://172.(1[6-9] | 2[0-9] | 31).#{1,3}.#{1,3}");
+        registry.addHandler(socketHandler, "/exec").setAllowedOriginPatterns("http://localhost:*", "http://127.#{1,3}.#{1,3}.#{1,3}:*", "http://10.#{1,3}.#{1,3}.#{1,3}", "http://192.168.#{1,3}.#{1,3}", "http://172.(1[6-9] | 2[0-9] | 31).#{1,3}.#{1,3}");
     }
 }
