@@ -10,10 +10,11 @@ public interface ZipService {
 
     /**
      * Compresses a folder from the shared directory and appends it to the given Stream
-     * @param dir2zip Relative path inside the shared folder
+     * @param baseDir Relative path inside the shared folder
+     * @param dir2zip Path inside the baseDir
      * @param zos ZipOutputStream to write the folder to
      */
-    void zipDir(String dir2zip, ZipOutputStream zos);
+    void zipDir(String baseDir, String dir2zip, ZipOutputStream zos);
 
     /**
      * Compresses a file from the shared directory and appends it to the given Stream

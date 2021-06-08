@@ -109,7 +109,7 @@ public class FileController {
                 File file = storageService.load(f).toFile();
                 try {
                     if(file.isDirectory())
-                        zipService.zipDir(file.getPath(), zos);
+                        zipService.zipDir(file.getParent(), file.getPath(), zos);
                     else
                         zipService.zipFile(file, zos);
                 } catch (IOException e) {

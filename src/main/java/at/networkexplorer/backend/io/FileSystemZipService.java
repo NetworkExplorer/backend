@@ -30,7 +30,7 @@ public class FileSystemZipService implements ZipService {
     }
 
     @Override
-    public void zipDir(String dir2zip, ZipOutputStream zos) {
+    public void zipDir(String baseDir, String dir2zip, ZipOutputStream zos) {
         try {
             File zipDir = new File(dir2zip);
 
@@ -45,13 +45,13 @@ public class FileSystemZipService implements ZipService {
                     //if the File object is a directory, call this
                     //function again to add its content recursively
                     String filePath = f.getPath();
-                    zipDir(filePath, zos);
+                    zipDir(baseDir, filePath, zos);
                     continue;
                 }
 
                 FileInputStream fis = new FileInputStream(f);
                 //create entry with relative path, so that subfolders are being created
-                ZipEntry anEntry = new ZipEntry(rootLocation.relativize(Path.of(f.getPath())).toString());
+                ZipEntry anEntry = new ZipEntry(Path.of(baseDir).relativize(Path.of(f.getPath())).toString());
                 zos.putNextEntry(anEntry);
 
                 while ((bytesIn = fis.read(readBuffer)) != -1) {
