@@ -33,3 +33,7 @@ build/
 .vscode/
 
 application.properties
+
+
+### NWEXP ###
+nwexp.json

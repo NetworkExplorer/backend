@@ -2,12 +2,14 @@ package at.networkexplorer.backend.db;
 
 import at.networkexplorer.backend.beans.UserPermission;
 import at.networkexplorer.backend.model.User;
+import at.networkexplorer.backend.utils.PasswordUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.hash.Hashing;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -17,16 +19,24 @@ import java.util.NoSuchElementException;
 public class FileDB {
 
     private static FileDB instance;
-    private List<User> users = new ArrayList<>(Arrays.asList(new User("admin", "005b53e7a54bda22685965b1aca999a8fe89d94cc3abfd3014db35dc1ec7e632", Arrays.asList(new UserPermission[] { UserPermission.CREATE_ACCOUNT, UserPermission.READ, UserPermission.WRITE, UserPermission.TERMINAL }))));
+    private List<User> users = new ArrayList<>();
     private ObjectMapper mapper = new ObjectMapper();
+
+    Logger logger = LoggerFactory.getLogger(FileDB.class);
 
     public FileDB() {
         String path = System.getProperty("user.dir") + File.separator + "nwexp.json";
         File db = new File(path);
 
+        User admin = new User("admin", "", Arrays.asList(new UserPermission[] { UserPermission.MANAGE_USER, UserPermission.READ, UserPermission.WRITE, UserPermission.TERMINAL }));
+        String pw = PasswordUtil.generate(12);
+        admin.setPassword(this.encrypt(pw));
+        users.add(admin);
+
         try {
             if(db.createNewFile()) {
                 mapper.writeValue(db, users);
+                logger.info(String.format("Admin Password: %s", pw));
             } else {
                 users = Arrays.asList(mapper.readValue(db, User[].class));
             }
@@ -74,6 +84,12 @@ public class FileDB {
         }
 
         return true;
+    }
+
+    public boolean updateUser(User user) throws IOException {
+        if(!this.removeUser(user))
+            return false;
+        return this.createUser(user);
     }
 
     public User getUserByUsername(String username) throws NoSuchElementException {

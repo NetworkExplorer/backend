@@ -68,7 +68,7 @@ public class CommandExecutor {
                 process.destroy();
                 processes.remove(session.getId());
             } catch(IOException e) {
-                e.printStackTrace();
+                //e.printStackTrace(); // Is called everytime, CTRL+C is executed
             } finally {
                 process.destroy();
                 processes.remove(session.getId());
