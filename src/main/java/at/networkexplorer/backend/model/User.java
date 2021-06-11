@@ -17,7 +17,7 @@ import java.util.Objects;
 public class User {
 
     private String username;
-    private String password; // this is the hash (sha256)
+    private String password;
     private List<UserPermission> permissions;
     private List<String> jwts;
 

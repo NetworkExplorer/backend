@@ -10,6 +10,7 @@ import at.networkexplorer.backend.model.User;
 import at.networkexplorer.backend.pojos.Token;
 import at.networkexplorer.backend.pojos.Login;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 

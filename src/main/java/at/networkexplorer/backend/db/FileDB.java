@@ -7,10 +7,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.hash.Hashing;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -22,6 +27,9 @@ public class FileDB {
     private static FileDB instance;
     private List<User> users = new ArrayList<>();
     private ObjectMapper mapper = new ObjectMapper();
+
+    @Value("${pbkdf2.secret}") // is always null, because this doesnt work here
+    private String secret;
 
     Logger logger = LoggerFactory.getLogger(FileDB.class);
 
@@ -99,7 +107,9 @@ public class FileDB {
 
     public String encrypt(String password) {
         //TODO: change to PBKDF2!
-        return Hashing.sha256().hashString(password, StandardCharsets.UTF_8).toString();
+        System.out.println("-----------------" + secret);
+        return PasswordUtil.convertStringToHash(password, secret);
+        //return Hashing.sha256().hashString(password, StandardCharsets.UTF_8).toString();
     }
 
     public boolean authenticate(String username, String password) throws NoSuchElementException {
