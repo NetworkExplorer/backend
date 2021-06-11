@@ -7,7 +7,7 @@ import at.networkexplorer.backend.db.FileDB;
 import at.networkexplorer.backend.exceptions.InsufficientPermissionsException;
 import at.networkexplorer.backend.messages.Messages;
 import at.networkexplorer.backend.model.User;
-import at.networkexplorer.backend.pojos.JwtResult;
+import at.networkexplorer.backend.pojos.Token;
 import at.networkexplorer.backend.pojos.Login;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -88,9 +88,50 @@ public class UserController {
     @ResponseBody
     Result login(@RequestBody Login login) {
         this.authenticate(login.getUsername(), login.getPassword());
-        String token = jwtTokenUtil.generateToken(login);
+        String token = null;
+        try {
+            token = jwtTokenUtil.generateToken(login);
+        } catch (IOException | NullPointerException e) {
+            throw new IllegalArgumentException("There was an error updating the user");
+        }
 
-        return new Result(200, new JwtResult(token));
+        return new Result(200, new Token(token));
+    }
+
+    @PostMapping("logout")
+    @ResponseBody
+    Result logout(@RequestBody Token jwt) {
+        this.invalidate(jwt.getToken());
+        return new Result(200, null);
+    }
+
+    @PostMapping("validate")
+    @ResponseBody
+    Result validate(@RequestBody Token jwt) {
+        try {
+            User user = db.getUserByUsername(jwtTokenUtil.getUsernameFromToken(jwt.getToken()));
+            boolean valid = this.jwtTokenUtil.validateToken(jwt.getToken(), user);
+            if(!valid) {
+                user.removeJwt(jwt.getToken());
+                db.store();
+                throw new NullPointerException();
+            }
+        } catch (NullPointerException | IOException e) {
+            throw new IllegalArgumentException("Invalid JWT");
+        }
+
+        return new Result(200, null);
+    }
+
+    @GetMapping
+    @ResponseBody
+    Result getUsers() {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if(!user.hasPermission(UserPermission.MANAGE_USER)) {
+            throw new InsufficientPermissionsException(String.format(Messages.MISSING_PERMISSION, UserPermission.MANAGE_USER));
+        }
+
+        return new Result(200, db.getUsers());
     }
 
     private void authenticate(String username, String password) {
@@ -99,6 +140,15 @@ public class UserController {
                 throw new Exception("");
         } catch(Exception e) {
             throw new IllegalArgumentException("Invalid username or password");
+        }
+    }
+
+    private void invalidate(String jwt) {
+        try {
+            db.getUserByUsername(jwtTokenUtil.getUsernameFromToken(jwt)).removeJwt(jwt);
+            db.store();
+        } catch (NullPointerException | IOException e) {
+            throw new IllegalArgumentException("Invalid JWT");
         }
     }
 

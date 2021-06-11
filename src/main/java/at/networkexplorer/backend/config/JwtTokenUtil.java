@@ -1,14 +1,18 @@
 package at.networkexplorer.backend.config;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
+import at.networkexplorer.backend.db.FileDB;
 import at.networkexplorer.backend.model.User;
 import at.networkexplorer.backend.pojos.Login;
 import io.jsonwebtoken.SignatureException;
+import org.mockito.internal.matchers.Null;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
@@ -22,7 +26,7 @@ public class JwtTokenUtil implements Serializable {
 
     private static final long serialVersionUID = -2550185165626007488L;
 
-    public static final long JWT_TOKEN_VALIDITY = 5 * 60 * 60;
+    public static final long JWT_TOKEN_VALIDITY = 30 * 24 * 60 * 60;
 
     @Value("${jwt.secret}")
     private String secret;
@@ -53,9 +57,14 @@ public class JwtTokenUtil implements Serializable {
     }
 
     //generate token for user
-    public String generateToken(Login login) {
+    public String generateToken(Login login) throws IOException, NullPointerException {
         Map<String, Object> claims = new HashMap<>();
-        return doGenerateToken(claims, login.getUsername());
+        User user = FileDB.getInstance().getUserByUsername(login.getUsername());
+        claims.put("permissions", user.getPermissions());
+        String token =  doGenerateToken(claims, login.getUsername());
+        user.addJwt(token);
+        FileDB.getInstance().store();
+        return token;
     }
 
     //while creating the token -
@@ -73,6 +82,7 @@ public class JwtTokenUtil implements Serializable {
     //validate token
     public Boolean validateToken(String token, User user) {
         final String username = getUsernameFromToken(token);
-        return (username.equals(user.getUsername()) && !isTokenExpired(token));
+        return (username.equals(user.getUsername()) && !isTokenExpired(token) && user.getJwts().contains(token));
     }
+
 }

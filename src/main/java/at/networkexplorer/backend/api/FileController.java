@@ -11,13 +11,12 @@ import at.networkexplorer.backend.io.StorageService;
 import at.networkexplorer.backend.io.ZipService;
 import at.networkexplorer.backend.messages.Messages;
 import at.networkexplorer.backend.model.User;
+import at.networkexplorer.backend.pojos.Token;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationServiceException;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.web.bind.annotation.*;
@@ -28,10 +27,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.zip.ZipOutputStream;
 
 @CrossOrigin(origins = "http://localhost:15000", methods = {RequestMethod.GET, RequestMethod.DELETE, RequestMethod.HEAD, RequestMethod.OPTIONS, RequestMethod.POST, RequestMethod.PUT})
@@ -40,6 +36,8 @@ import java.util.zip.ZipOutputStream;
 public class FileController {
     private final StorageService storageService;
     private final ZipService zipService;
+
+    private Set<String> fileTokens = new HashSet<>();
 
     @Autowired
     private JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
@@ -88,6 +86,17 @@ public class FileController {
         }
     }
 
+    @GetMapping("token")
+    @ResponseBody
+    Result getToken() {
+        String token;
+        do {
+            token = UUID.randomUUID().toString();
+        } while(fileTokens.contains(token));
+        fileTokens.add(token);
+        return new Result(200, new Token(token));
+    }
+
     /**
      * Mapping to download a single file via a ResponseEntity
      * @param file Relative path of single file inside the shared folder
@@ -95,7 +104,9 @@ public class FileController {
      */
     @GetMapping("download/file")
     @ResponseBody
-    ResponseEntity<?> serveFile(@RequestParam(required = true) String file) {
+    ResponseEntity<?> serveFile(@RequestParam(required = true) String file, @RequestParam(required = true) String token) {
+        if(!fileTokens.remove(token))
+            throw new IllegalArgumentException("Invalid File-Token");
         Resource res = storageService.loadAsResource(file);
         return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + res.getFilename()).body(res);
     }
@@ -107,7 +118,10 @@ public class FileController {
      */
     @GetMapping("download/files")
     @ResponseBody
-    void serveFiles(@RequestParam(required = true) String[] files, HttpServletResponse response) {
+    void serveFiles(@RequestParam(required = true) String[] files, @RequestParam(required = true) String token, HttpServletResponse response) {
+        if(!fileTokens.remove(token))
+            throw new IllegalArgumentException("Invalid File-Token");
+
         response.setContentType("application/zip");
         response.setStatus(200);
         String filename = (files.length > 1 ? "compressed" : storageService.load(files[0]).getFileName()) + ".zip";

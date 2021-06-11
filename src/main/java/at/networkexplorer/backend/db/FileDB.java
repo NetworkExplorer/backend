@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
 
 public class FileDB {
 
@@ -106,6 +107,10 @@ public class FileDB {
         if(user.getPassword().equals(encrypt(password)))
             return true;
         return false;
+    }
+
+    public List<User> getUsers() {
+        return this.users;
     }
 
 }

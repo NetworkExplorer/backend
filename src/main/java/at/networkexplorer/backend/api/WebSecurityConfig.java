@@ -26,7 +26,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http.csrf().disable()
                 // allow these mappings
-                .authorizeRequests().antMatchers("/api/v1/user/authenticate", "/api/v1/ping", "/exec").permitAll()
+                .authorizeRequests().antMatchers("/api/v1/user/authenticate", "/api/v1/user/validate", "/api/v1/ping", "/exec", "/api/v1/download/**").permitAll()
                 // for all other mappings: check
                 .anyRequest().authenticated().and()
                 // make sure we use stateless session; session won't be used to
