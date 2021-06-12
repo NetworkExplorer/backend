@@ -4,40 +4,36 @@ import at.networkexplorer.backend.beans.UserPermission;
 import at.networkexplorer.backend.model.User;
 import at.networkexplorer.backend.utils.PasswordUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.hash.Hashing;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
-import javax.crypto.SecretKeyFactory;
-import javax.crypto.spec.PBEKeySpec;
+import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.security.NoSuchAlgorithmException;
-import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.stream.Collectors;
 
+@Component
 public class FileDB {
 
-    private static FileDB instance;
     private List<User> users = new ArrayList<>();
-    private ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper mapper = new ObjectMapper();
 
-    @Value("${pbkdf2.secret}") // is always null, because this doesnt work here
+    @Value("${pbkdf2.secret}")
     private String secret;
 
     Logger logger = LoggerFactory.getLogger(FileDB.class);
 
-    public FileDB() {
+    @PostConstruct
+    public void init() {
         String path = System.getProperty("user.dir") + File.separator + "nwexp.json";
         File db = new File(path);
 
-        User admin = new User("admin", "", Arrays.asList(new UserPermission[] { UserPermission.MANAGE_USER, UserPermission.READ, UserPermission.WRITE, UserPermission.TERMINAL }));
+        User admin = new User("admin", "", Arrays.asList(UserPermission.values()));
         String pw = PasswordUtil.generate(12);
         admin.setPassword(this.encrypt(pw));
         users.add(admin);
@@ -53,11 +49,6 @@ public class FileDB {
             e.printStackTrace();
         }
 
-    }
-
-    public static FileDB getInstance() {
-        if(instance == null) instance = new FileDB();
-        return instance;
     }
 
     public void store() throws IOException {
@@ -106,15 +97,16 @@ public class FileDB {
     }
 
     public String encrypt(String password) {
-        //TODO: change to PBKDF2!
-        System.out.println("-----------------" + secret);
-        return PasswordUtil.convertStringToHash(password, secret);
-        //return Hashing.sha256().hashString(password, StandardCharsets.UTF_8).toString();
+        return PasswordUtil.hashPassword(password, secret);
+    }
+
+    private boolean check(String password, String hash) {
+        return PasswordUtil.checkPasswordHash(password, secret, hash);
     }
 
     public boolean authenticate(String username, String password) throws NoSuchElementException {
         User user = users.stream().filter(u -> u.getUsername().equals(username)).findFirst().get();
-        if(user.getPassword().equals(encrypt(password)))
+        if(check(password, user.getPassword()))
             return true;
         return false;
     }

@@ -1,6 +1,5 @@
 package at.networkexplorer.backend.config;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Date;
@@ -11,10 +10,8 @@ import java.util.function.Function;
 import at.networkexplorer.backend.db.FileDB;
 import at.networkexplorer.backend.model.User;
 import at.networkexplorer.backend.pojos.Login;
-import io.jsonwebtoken.SignatureException;
-import org.mockito.internal.matchers.Null;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import io.jsonwebtoken.Claims;
@@ -30,6 +27,9 @@ public class JwtTokenUtil implements Serializable {
 
     @Value("${jwt.secret}")
     private String secret;
+
+    @Autowired
+    private FileDB db;
 
     //retrieve username from jwt token
     public String getUsernameFromToken(String token) {
@@ -59,11 +59,11 @@ public class JwtTokenUtil implements Serializable {
     //generate token for user
     public String generateToken(Login login) throws IOException, NullPointerException {
         Map<String, Object> claims = new HashMap<>();
-        User user = FileDB.getInstance().getUserByUsername(login.getUsername());
+        User user = db.getUserByUsername(login.getUsername());
         claims.put("permissions", user.getPermissions());
         String token =  doGenerateToken(claims, login.getUsername());
         user.addJwt(token);
-        FileDB.getInstance().store();
+        db.store();
         return token;
     }
 

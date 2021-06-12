@@ -1,6 +1,7 @@
 package at.networkexplorer.backend.utils;
 
 import org.apache.commons.codec.binary.Hex;
+import org.springframework.security.crypto.password.Pbkdf2PasswordEncoder;
 
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
@@ -34,25 +35,18 @@ public class PasswordUtil {
         return password;
     }
 
+    private static final int SALT_LENGTH = 8;
     private static final int ITERATIONS = 10000;
     private static final int KEY_LENGTH = 512;
-    private static final String SALT = "saltKey";
 
-    public static String convertStringToHash(String password, String secret) {
-        return Hex.encodeHexString(hashPassword(password.toCharArray(), secret));
+    public static String hashPassword(final String password, final String secret) {
+        Pbkdf2PasswordEncoder pbkdf2 = new Pbkdf2PasswordEncoder(secret, SALT_LENGTH, ITERATIONS, KEY_LENGTH);
+        return pbkdf2.encode(password);
     }
 
-    private static byte[] hashPassword(final char[] password, String secret) {
-        SecretKeyFactory secretKeyFactory = null;
-        try {
-            secretKeyFactory = SecretKeyFactory.getInstance(secret);
-            PBEKeySpec spec = new PBEKeySpec(password, SALT.getBytes(), ITERATIONS, KEY_LENGTH);
-            SecretKey key = secretKeyFactory.generateSecret(spec);
-            return key.getEncoded();
-        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
-            e.printStackTrace();
-        }
-        return null;
+    public static boolean checkPasswordHash(final String password, final String secret, final String hash) {
+        Pbkdf2PasswordEncoder pbkdf2 = new Pbkdf2PasswordEncoder(secret, SALT_LENGTH, ITERATIONS, KEY_LENGTH);
+        return pbkdf2.matches(password, hash);
     }
 
 }

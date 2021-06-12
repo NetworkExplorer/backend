@@ -5,6 +5,7 @@ import at.networkexplorer.backend.config.JwtRequestFilter;
 import at.networkexplorer.backend.service.JwtUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -26,7 +27,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http.csrf().disable()
                 // allow these mappings
-                .authorizeRequests().antMatchers("/api/v1/user/authenticate", "/api/v1/user/validate", "/api/v1/ping", "/exec", "/api/v1/download/**").permitAll()
+                .authorizeRequests()
+                    .antMatchers("/api/v1/user/authenticate", "/api/v1/user/validate", "/api/v1/ping", "/exec", "/api/v1/download/**").permitAll()
+                    .antMatchers(HttpMethod.OPTIONS).permitAll() //cors stuff sends options requests -> bearer cannot be set
                 // for all other mappings: check
                 .anyRequest().authenticated().and()
                 // make sure we use stateless session; session won't be used to

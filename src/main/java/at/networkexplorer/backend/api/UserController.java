@@ -23,7 +23,8 @@ public class UserController {
 
     // https://www.javainuse.com/spring/boot-jwt
 
-    private FileDB db = FileDB.getInstance();
+    @Autowired
+    private FileDB db;
 
     @Autowired
     private JwtTokenUtil jwtTokenUtil;

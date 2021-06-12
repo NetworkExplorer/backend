@@ -14,8 +14,10 @@ import java.util.NoSuchElementException;
 @Service
 public class JwtUserDetailsService {
 
+    @Autowired
+    private FileDB db;
+
     public User loadUserByUsername(String username) throws UsernameNotFoundException {
-        FileDB db = FileDB.getInstance();
         try {
             return db.getUserByUsername(username);
         }catch(NoSuchElementException e) {
