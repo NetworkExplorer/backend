@@ -55,6 +55,7 @@ public class CommandExecutor {
             try {
                 String line = null, err = null;
                 while ((line = reader.readLine()) != null || (err = error.readLine()) != null) {
+
                     if(!session.isOpen())
                         break;
 

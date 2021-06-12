@@ -31,7 +31,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class SocketHandler extends TextWebSocketHandler {
 
     // keep log of who has provided a valid JWT and has the right permissions
-    Map<WebSocketSession, Boolean> sessions = new HashMap();
+    Map<String, Boolean> sessions = new HashMap();
     ObjectMapper mapper = new ObjectMapper();
 
     @Autowired
@@ -45,10 +45,10 @@ public class SocketHandler extends TextWebSocketHandler {
 
     @Override
     public void handleTextMessage(WebSocketSession session, TextMessage message)
-            throws InterruptedException, IOException {
+            throws IOException {
         Map value = new Gson().fromJson(message.getPayload(), Map.class);
         try {
-            if (!sessions.get(session)) {
+            if (!sessions.get(session.getId())) {
                 String bearer = value.get("bearer") == null ? null : value.get("bearer").toString();
                 User user = jwtUserDetailsService.loadUserByUsername(jwtTokenUtil.getUsernameFromToken(bearer));
 
@@ -58,7 +58,7 @@ public class SocketHandler extends TextWebSocketHandler {
                 }
 
                 if (bearer != null && jwtTokenUtil.validateToken(bearer, user)) {
-                    sessions.put(session, true);
+                    sessions.put(session.getId(), true);
                 } else {
                     session.sendMessage(new TextMessage(mapper.writeValueAsString(new ApiError(HttpStatus.BAD_REQUEST, "Please provide a valid bearer token!", new Throwable("Invalid or missing JWT")))));
                     return;
@@ -81,12 +81,12 @@ public class SocketHandler extends TextWebSocketHandler {
     }
 
     @Override
-    public void afterConnectionEstablished(WebSocketSession session) throws Exception {
-        sessions.put(session, false);
+    public void afterConnectionEstablished(WebSocketSession session) {
+        sessions.put(session.getId(), false);
     }
 
     @Override
-    public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
-        sessions.remove(session);
+    public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
+        sessions.remove(session.getId());
     }
 }

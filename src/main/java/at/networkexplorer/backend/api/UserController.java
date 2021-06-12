@@ -15,6 +15,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.util.NoSuchElementException;
 
 @CrossOrigin(origins = "http://localhost:15000", methods = {RequestMethod.GET, RequestMethod.DELETE, RequestMethod.HEAD, RequestMethod.OPTIONS, RequestMethod.POST})
 @RequestMapping("api/v1/user")
@@ -29,6 +30,11 @@ public class UserController {
     @Autowired
     private JwtTokenUtil jwtTokenUtil;
 
+    /**
+     * Creates a new User
+     * @param toAdd <a href="#{@link}">{@link User}</a> to create
+     * @return <a href="#{@link}">{@link Result}</a>
+     */
     @PostMapping("")
     @ResponseBody
     Result createUser(@RequestBody User toAdd) {
@@ -48,6 +54,11 @@ public class UserController {
         return new Result(201, toAdd, Messages.CREATED_ACCOUNT);
     }
 
+    /**
+     * Deletes a User
+     * @param toRem <a href="#{@link}">{@link User}</a> to delete
+     * @return <a href="#{@link}">{@link Result}</a>
+     */
     @DeleteMapping("")
     @ResponseBody
     Result deleteUser(@RequestBody User toRem) {
@@ -55,8 +66,6 @@ public class UserController {
         if(!user.hasPermission(UserPermission.MANAGE_USER)) {
             throw new InsufficientPermissionsException(String.format(Messages.MISSING_PERMISSION, UserPermission.MANAGE_USER));
         }
-
-        toRem.setPassword(db.encrypt(toRem.getPassword()));
 
         try {
             db.removeUser(toRem);
@@ -67,6 +76,11 @@ public class UserController {
         return new Result(201, toRem, Messages.REMOVED_ACCOUNT);
     }
 
+    /**
+     * Changes a User's attributes
+     * @param toChange <a href="#{@link}">{@link User}</a> object that only contains the values that should be changed; the others should be null
+     * @return <a href="#{@link}">{@link Result}</a>
+     */
     @PutMapping("")
     @ResponseBody
     Result changeUser(@RequestBody User toChange) {
@@ -75,17 +89,32 @@ public class UserController {
             throw new InsufficientPermissionsException(String.format(Messages.MISSING_PERMISSION, UserPermission.MANAGE_USER));
         }
 
-        toChange.setPassword(db.encrypt(toChange.getPassword()));
-
+        User changed;
         try {
-            db.updateUser(toChange);
-        } catch(IOException e) {
+            changed = db.getUserByUsername(toChange.getUsername());
+        }catch (NoSuchElementException e) {
             throw new IllegalArgumentException(String.format(Messages.USER_UPDATE_ERROR, toChange.getUsername()));
         }
 
-        return new Result(200, toChange, Messages.UPDATED_ACCOUNT);
+        if(toChange.getPassword() != null)
+            changed.setPassword(db.encrypt(toChange.getPassword()));
+        if(toChange.getPermissions() != null)
+            changed.setPermissions(toChange.getPermissions());
+
+        try {
+            db.store();
+        } catch (IOException e) {
+            throw new NullPointerException(Messages.ERROR_DB);
+        }
+
+        return new Result(201, toChange, Messages.UPDATED_ACCOUNT);
     }
 
+    /**
+     * Method to login. Checks username and password and returns a JWT
+     * @param login <a href="#{@link}">{@link Login}</a>
+     * @return <a href="#{@link}">{@link Result}</a>
+     */
     @PostMapping("authenticate")
     @ResponseBody
     Result login(@RequestBody Login login) {
@@ -94,12 +123,17 @@ public class UserController {
         try {
             token = jwtTokenUtil.generateToken(login);
         } catch (IOException | NullPointerException e) {
-            throw new IllegalArgumentException("There was an error updating the user");
+            throw new IllegalArgumentException(Messages.ERROR_JWT);
         }
 
         return new Result(200, new Token(token));
     }
 
+    /**
+     * Logs a user out by invalidating the JWT
+     * @param jwt <a href="#{@link}">{@link Token}</a> to invalidate
+     * @return <a href="#{@link}">{@link Result}</a>
+     */
     @PostMapping("logout")
     @ResponseBody
     Result logout(@RequestBody Token jwt) {
@@ -107,6 +141,11 @@ public class UserController {
         return new Result(200, null);
     }
 
+    /**
+     * Validates a given JWT to check whether it's expired
+     * @param jwt <a href="#{@link}">{@link Token}</a> to validate
+     * @return <a href="#{@link}">{@link Result}</a>
+     */
     @PostMapping("validate")
     @ResponseBody
     Result validate(@RequestBody Token jwt) {
@@ -119,12 +158,16 @@ public class UserController {
                 throw new NullPointerException();
             }
         } catch (NullPointerException | IOException e) {
-            throw new IllegalArgumentException("Invalid JWT");
+            throw new IllegalArgumentException(Messages.INVALID_JWT);
         }
 
         return new Result(200, null);
     }
 
+    /**
+     * Returns all users from the database. Requires the MANAGE_USER permission.
+     * @return <a href="#{@link}">{@link Result}</a>
+     */
     @GetMapping
     @ResponseBody
     Result getUsers() {
@@ -136,21 +179,32 @@ public class UserController {
         return new Result(200, db.getUsers());
     }
 
-    private void authenticate(String username, String password) {
+    /**
+     * Authentication method to validate the username and password combination.
+     * @param username Username to check
+     * @param password Password to check
+     * @throws IllegalArgumentException If the combination is incorrect
+     */
+    private void authenticate(String username, String password) throws IllegalArgumentException {
         try {
             if(!db.authenticate(username, password))
                 throw new Exception("");
         } catch(Exception e) {
-            throw new IllegalArgumentException("Invalid username or password");
+            throw new IllegalArgumentException(Messages.INVALID_CREDS);
         }
     }
 
-    private void invalidate(String jwt) {
+    /**
+     * Invalidates a JWT token
+     * @param jwt The token to invalidate
+     * @throws IllegalArgumentException If the JWT is invalid
+     */
+    private void invalidate(String jwt) throws IllegalArgumentException {
         try {
             db.getUserByUsername(jwtTokenUtil.getUsernameFromToken(jwt)).removeJwt(jwt);
             db.store();
         } catch (NullPointerException | IOException e) {
-            throw new IllegalArgumentException("Invalid JWT");
+            throw new IllegalArgumentException(Messages.INVALID_JWT);
         }
     }
 

@@ -23,6 +23,11 @@ public class Messages {
     public static final String USER_REMOVE_ERROR = "Cannot delete user '%s'";
     public static final String USER_UPDATE_ERROR = "Cannot update user '%s'";
     public static final String UPDATED_ACCOUNT = "User updated successfully";
+    public static final String ERROR_JWT = "There was an error while generating the Bearer Token";
+    public static final String INVALID_JWT = "Invalid JWT";
+    public static final String INVALID_CREDS = "Invalid username or password";
 
+    // STORAGE
+    public static final String ERROR_DB = "Database error";
 
 }
