@@ -13,10 +13,7 @@ import org.springframework.web.servlet.ModelAndView;
 import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.NoSuchElementException;
+import java.util.*;
 
 @Component
 public class FileDB {
@@ -34,7 +31,7 @@ public class FileDB {
         String path = System.getProperty("user.dir") + File.separator + "nwexp.json";
         File db = new File(path);
 
-        User admin = new User("admin", "", Arrays.asList(UserPermission.values()));
+        User admin = new User("admin", "", Set.of(UserPermission.values()));
         String pw = PasswordUtil.generate(12);
         admin.setPassword(this.encrypt(pw));
         users.add(admin);
@@ -44,7 +41,7 @@ public class FileDB {
                 mapper.writeValue(db, users);
                 logger.info(String.format("Admin Password: %s", pw));
             } else {
-                users = Arrays.asList(mapper.readValue(db, User[].class));
+                users = new ArrayList<>(Arrays.asList(mapper.readValue(db, User[].class)));
             }
         } catch (IOException e) {
             e.printStackTrace();

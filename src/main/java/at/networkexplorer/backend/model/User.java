@@ -1,31 +1,28 @@
 package at.networkexplorer.backend.model;
 
 import at.networkexplorer.backend.beans.UserPermission;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import javax.validation.constraints.NotEmpty;
+import java.util.*;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class User {
-
+    @NotEmpty(message = "Username may not be empty")
     private String username;
     private String password;
-    private List<UserPermission> permissions;
-    private List<String> jwts;
+    private Set<UserPermission> permissions;
+    private Set<String> jwts;
 
-    public User(String username, String password, List<UserPermission> permissions) {
+    public User(String username, String password, Set<UserPermission> permissions) {
         this.username = username;
         this.password = password;
         this.permissions = permissions;
-        jwts = new ArrayList<>();
+        jwts = new HashSet<>();
     }
 
     @Override

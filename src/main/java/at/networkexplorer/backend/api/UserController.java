@@ -15,6 +15,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.NoSuchElementException;
 
 @CrossOrigin(origins = "http://localhost:15000", methods = {RequestMethod.GET, RequestMethod.DELETE, RequestMethod.HEAD, RequestMethod.OPTIONS, RequestMethod.POST})
@@ -43,7 +45,13 @@ public class UserController {
             throw new InsufficientPermissionsException(String.format(Messages.MISSING_PERMISSION, UserPermission.MANAGE_USER));
         }
 
+        if(toAdd.getPassword() == null || toAdd.getPassword().length() == 0)
+            throw new IllegalArgumentException("Password must not be null/empty!");
+
         toAdd.setPassword(db.encrypt(toAdd.getPassword()));
+        if(toAdd.getPermissions() == null)
+            toAdd.setPermissions(new HashSet<>());
+        toAdd.setJwts(new HashSet<>());
 
         try {
             db.createUser(toAdd);
