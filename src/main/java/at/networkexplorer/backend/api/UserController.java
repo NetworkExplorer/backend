@@ -137,7 +137,7 @@ public class UserController {
         String token = null;
         try {
             token = jwtTokenUtil.generateToken(login);
-        } catch (IOException | NullPointerException e) {
+        } catch (IOException | NullPointerException | ArrayIndexOutOfBoundsException e) {
             throw new IllegalArgumentException(Messages.ERROR_JWT);
         }
 
