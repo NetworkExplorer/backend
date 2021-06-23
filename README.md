@@ -39,7 +39,7 @@ For the installation, you first have to resolve all dependencies and then add a 
 #### IntelliJ
 
 When using IntelliJ, you only have to open the project, double click on the `pom.xml` and import everything.
-![MavenImport](Z:\Adrian\Programmieren\NetworkExplorer\backend\media\MavenImport.gif)
+![MavenImport](./media/MavenImport.gif)
 
 #### CLI
 
@@ -95,7 +95,7 @@ pbkdf2.secret=FSnyGauBYK69NZR6ZGa2GTM9QPbnca
 
 The first start of the server requires attention, because you will have to note down the admin password - it can be changed later.
 
-![FirstStart](Z:\Adrian\Programmieren\NetworkExplorer\backend\media\FirstStart.gif)
+![FirstStart](./media/FirstStart.gif)
 
 ### Usage
 
