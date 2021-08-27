@@ -8,7 +8,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.springframework.web.servlet.ModelAndView;
 
 import javax.annotation.PostConstruct;
 import java.io.File;
@@ -135,9 +134,7 @@ public class FileDB {
      */
     public boolean authenticate(String username, String password) throws NoSuchElementException {
         User user = users.stream().filter(u -> u.getUsername().equals(username)).findFirst().get();
-        if(check(password, user.getPassword()))
-            return true;
-        return false;
+        return check(password, user.getPassword());
     }
 
     // actual check function to the public authenticate function

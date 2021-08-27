@@ -4,8 +4,6 @@ import at.networkexplorer.backend.db.FileDB;
 import at.networkexplorer.backend.messages.Messages;
 import at.networkexplorer.backend.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 

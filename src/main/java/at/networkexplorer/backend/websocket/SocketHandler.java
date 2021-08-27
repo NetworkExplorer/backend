@@ -3,8 +3,6 @@ package at.networkexplorer.backend.websocket;
 import at.networkexplorer.backend.api.response.ApiError;
 import at.networkexplorer.backend.beans.UserPermission;
 import at.networkexplorer.backend.config.JwtTokenUtil;
-import at.networkexplorer.backend.db.FileDB;
-import at.networkexplorer.backend.io.FileSystemStorageService;
 import at.networkexplorer.backend.io.StorageService;
 import at.networkexplorer.backend.model.User;
 import at.networkexplorer.backend.service.JwtUserDetailsService;
@@ -12,7 +10,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import io.jsonwebtoken.SignatureException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
@@ -21,11 +18,8 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 @Component
 public class SocketHandler extends TextWebSocketHandler {

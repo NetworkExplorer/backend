@@ -7,19 +7,17 @@ import at.networkexplorer.backend.db.FileDB;
 import at.networkexplorer.backend.exceptions.InsufficientPermissionsException;
 import at.networkexplorer.backend.messages.Messages;
 import at.networkexplorer.backend.model.User;
-import at.networkexplorer.backend.pojos.Token;
 import at.networkexplorer.backend.pojos.Login;
+import at.networkexplorer.backend.pojos.Token;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.NoSuchElementException;
 
-@CrossOrigin(origins = "http://localhost:15000", methods = {RequestMethod.GET, RequestMethod.DELETE, RequestMethod.HEAD, RequestMethod.OPTIONS, RequestMethod.POST})
+@CrossOrigin(origins = "http://localhost:15000", methods = {RequestMethod.GET, RequestMethod.DELETE, RequestMethod.HEAD, RequestMethod.OPTIONS, RequestMethod.POST, RequestMethod.PUT})
 @RequestMapping("api/v1/user")
 @RestController
 public class UserController {

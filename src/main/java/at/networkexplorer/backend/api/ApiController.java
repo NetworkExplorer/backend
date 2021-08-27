@@ -1,6 +1,5 @@
 package at.networkexplorer.backend.api;
 
-import at.networkexplorer.backend.api.response.Result;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;

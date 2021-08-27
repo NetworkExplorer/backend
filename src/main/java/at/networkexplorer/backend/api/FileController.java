@@ -27,7 +27,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 import java.util.zip.ZipOutputStream;
 
 @CrossOrigin(origins = "http://localhost:15000", methods = {RequestMethod.GET, RequestMethod.DELETE, RequestMethod.HEAD, RequestMethod.OPTIONS, RequestMethod.POST, RequestMethod.PUT})
@@ -37,7 +39,7 @@ public class FileController {
     private final StorageService storageService;
     private final ZipService zipService;
 
-    private Set<String> fileTokens = new HashSet<>();
+    private final Set<String> fileTokens = new HashSet<>();
 
     @Autowired
     private JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;

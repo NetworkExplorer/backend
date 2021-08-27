@@ -1,22 +1,21 @@
 package at.networkexplorer.backend.config;
 
+import at.networkexplorer.backend.db.FileDB;
+import at.networkexplorer.backend.model.User;
+import at.networkexplorer.backend.pojos.Login;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
-
-import at.networkexplorer.backend.db.FileDB;
-import at.networkexplorer.backend.model.User;
-import at.networkexplorer.backend.pojos.Login;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
-
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 
 @Component
 public class JwtTokenUtil implements Serializable {

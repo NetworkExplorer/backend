@@ -2,7 +2,6 @@ package at.networkexplorer.backend.api;
 
 import at.networkexplorer.backend.config.JwtAuthenticationEntryPoint;
 import at.networkexplorer.backend.config.JwtRequestFilter;
-import at.networkexplorer.backend.service.JwtUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -28,14 +27,15 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         http.csrf().disable()
                 // allow these mappings
                 .authorizeRequests()
-                    .antMatchers("/api/v1/user/authenticate", "/api/v1/user/validate", "/api/v1/ping", "/exec", "/api/v1/download/**").permitAll()
-                    .antMatchers(HttpMethod.OPTIONS).permitAll() //cors stuff sends options requests -> bearer cannot be set
-                // for all other mappings: check
+                .antMatchers("/api/v1/user/authenticate", "/api/v1/user/validate", "/api/v1/ping", "/exec", "/api/v1/download/**").permitAll()
+                .antMatchers(HttpMethod.OPTIONS).permitAll() //cors stuff sends options requests -> bearer cannot be set
+                .antMatchers("(?!/api/)").permitAll() // allow access to public folders for the frontend
                 .anyRequest().authenticated().and()
                 // make sure we use stateless session; session won't be used to
                 // store user's state.
                 .exceptionHandling().authenticationEntryPoint(jwtAuthenticationEntryPoint).and().sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+        ;
 
         http.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
     }

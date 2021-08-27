@@ -3,13 +3,15 @@ package at.networkexplorer.backend.websocket;
 import at.networkexplorer.backend.pojos.Command;
 import at.networkexplorer.backend.utils.OSUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
@@ -18,9 +20,9 @@ import java.util.Map;
 @Controller
 public class CommandExecutor {
 
-    private static Map<String, Process> processes = new HashMap<>();
+    private static final Map<String, Process> processes = new HashMap<>();
 
-    private static ObjectMapper mapper = new ObjectMapper();
+    private static final ObjectMapper mapper = new ObjectMapper();
 
     /**
      * Execute a command for a session

@@ -1,6 +1,5 @@
 package at.networkexplorer.backend.bl;
 
-import java.io.File;
 import java.util.Comparator;
 import java.util.regex.Pattern;
 
