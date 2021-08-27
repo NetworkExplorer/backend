@@ -1,36 +1,37 @@
 <p align="center">
-  <img alt="Figaro" src="media/nwexp_logo.png" width="125" height="125" />
+  <img alt="NetworkExplorer Logo" src="media/nwexp_logo.png" width="125" height="125" />
 </p>
 
 <h1 align="center">Network Explorer - BACKEND</h1>
 
----
-
 ## About
 
-The backend side of the Network Explorer - a project that arose out of our Software Engineering subject
+The backend side of Network Explorer - a project that arose out of our Software Engineering subject
 
 ## Table of Contents
+
 - [About](#about)
 - [Table of Contents](#table-of-contents)
-- [Setup](#setup)
-  - [Requirements](#requirements)
-  - [Installation](#installation)
-    - [IntelliJ](#intellij)
-    - [CLI](#cli)
-  - [Configuration](#configuration)
-  - [First Start](#first-start)
-- [Usage](#usage)
-  - [Testing Connectivity](#testing)
-  - [Deleting User Data](#deleting-user-data)
-  
-## Setup
+- [Requirements](#requirements)
+- [Development Setup](#development-setup)
+	- [Installation](#installation)
+		- [IntelliJ](#intellij)
+		- [CLI](#cli)
+	- [Configuration](#configuration)
+		- [Example Configuration](#example-configuration)
+	- [First Start](#first-start)
+	- [Usage](#usage)
+		- [Testing](#testing)
+		- [Deleting User Data](#deleting-user-data)
+
+## Requirements
+
+- Maven
+- JDK 13+
+
+## Development Setup
 
 The setup couldn't be more simple. Just download this repository and open it in `IntelliJ`.
-
-### Requirements
-
-* Maven
 
 ### Installation
 
@@ -67,10 +68,12 @@ jwt.secret=<JWT_SECRET>
 #PBKDF2
 pbkdf2.secret=<PBKDF2_SECRET>
 ```
+
 ... where ...
-* `MAX_SIZE` is the maximum allowed file size to be uploaded,
-* `SHARED_FOLDER` is the absolute path (on your harddrive) that you want to share, (with Windows: make sure to use double <u>backslash</u>!)
-* `*_SECRET` are the SECRET keys for JWT generation and password hashing
+
+- `MAX_SIZE` is the maximum allowed file size to be uploaded,
+- `SHARED_FOLDER` is the absolute path (on your harddrive) that you want to share, (with Windows: make sure to use double <u>backslash</u>!)
+- `*_SECRET` are the SECRET keys for JWT generation and password hashing
 
 #### Example Configuration
 
@@ -107,7 +110,7 @@ You can test whether the server is started by opening [localhost:16091/api/v1/pi
 
 #### Deleting User Data
 
-If you forgot to write down the admin password (or forgot it)... no problem! You can easily reset the whole user data. 
+If you forgot to write down the admin password (or forgot it)... no problem! You can easily reset the whole user data.
 
 1. Navigate to the root folder of the project and delete `nwexp.json`
 2. Restart the Server
