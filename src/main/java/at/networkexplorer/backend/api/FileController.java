@@ -58,6 +58,10 @@ public class FileController {
      */
     @GetMapping("folder")
     Result folder() {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if(!user.hasPermission(UserPermission.READ)) {
+            throw new InsufficientPermissionsException(String.format(Messages.MISSING_PERMISSION, UserPermission.READ));
+        }
         return new Result(
                 200,
                 new NetworkFile("/", FileType.FOLDER, storageService.loadAll("/")));
@@ -71,6 +75,10 @@ public class FileController {
      */
     @GetMapping("folder/{folder}/**")
     Result folder(@PathVariable("folder") String folder, HttpServletRequest request) {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if(!user.hasPermission(UserPermission.READ)) {
+            throw new InsufficientPermissionsException(String.format(Messages.MISSING_PERMISSION, UserPermission.READ));
+        }
         final String parth =
                 request.getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE).toString();
         final String bestMatchingPattern =
@@ -91,6 +99,11 @@ public class FileController {
     @GetMapping("token")
     @ResponseBody
     Result getToken() {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if(!user.hasPermission(UserPermission.READ)) {
+            throw new InsufficientPermissionsException(String.format(Messages.MISSING_PERMISSION, UserPermission.READ));
+        }
+
         String token;
         do {
             token = UUID.randomUUID().toString();

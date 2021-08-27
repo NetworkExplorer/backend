@@ -90,22 +90,29 @@ public class UserController {
     @PutMapping("")
     @ResponseBody
     Result changeUser(@RequestBody User toChange) {
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if(!user.hasPermission(UserPermission.MANAGE_USER)) {
-            throw new InsufficientPermissionsException(String.format(Messages.MISSING_PERMISSION, UserPermission.MANAGE_USER));
-        }
 
-        User changed;
         try {
+            User changed;
             changed = db.getUserByUsername(toChange.getUsername());
+
+            User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+            if(toChange.getPassword() != null) {
+                if(user.getUsername().equals(changed.getUsername()) || user.hasPermission(UserPermission.MANAGE_USER))
+                    changed.setPassword(db.encrypt(toChange.getPassword()));
+                else
+                    throw new InsufficientPermissionsException(String.format(Messages.MISSING_PERMISSION, UserPermission.MANAGE_USER));
+            }
+
+            if(toChange.getPermissions() != null) {
+                if(!user.hasPermission(UserPermission.MANAGE_USER))
+                    throw new InsufficientPermissionsException(String.format(Messages.MISSING_PERMISSION, UserPermission.MANAGE_USER));
+                changed.setPermissions(toChange.getPermissions());
+            }
+
         }catch (NoSuchElementException e) {
             throw new IllegalArgumentException(String.format(Messages.USER_UPDATE_ERROR, toChange.getUsername()));
         }
-
-        if(toChange.getPassword() != null)
-            changed.setPassword(db.encrypt(toChange.getPassword()));
-        if(toChange.getPermissions() != null)
-            changed.setPermissions(toChange.getPermissions());
 
         try {
             db.store();
@@ -128,7 +135,7 @@ public class UserController {
         String token = null;
         try {
             token = jwtTokenUtil.generateToken(login);
-        } catch (IOException | NullPointerException e) {
+        } catch (IOException | NullPointerException | ArrayIndexOutOfBoundsException e) {
             throw new IllegalArgumentException(Messages.ERROR_JWT);
         }
 
