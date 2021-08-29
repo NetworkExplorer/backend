@@ -13,6 +13,7 @@ The backend side of Network Explorer - a project that arose out of our Software 
 - [About](#about)
 - [Table of Contents](#table-of-contents)
 - [Requirements](#requirements)
+- [Building the JAR](#building-the-jar)
 - [Development Setup](#development-setup)
 	- [Installation](#installation)
 		- [IntelliJ](#intellij)
@@ -29,6 +30,10 @@ The backend side of Network Explorer - a project that arose out of our Software 
 - Maven
 - JDK 13+
 
+## Building the JAR
+
+It is as easy as running `./mvnw install clean` (Linux/MacOS) or `.\mvnw install clean` (Windows). The output JAR will be in the `target` directory. You can start the spring application with this command: `java -jar <path-to-jar> at.networkexplorer.backend.BackendApplication`. Your `application.properties` needs to be in the same directiory where you execute the command. An example configuration can be found in the [Configuration](#configuration) section.
+
 ## Development Setup
 
 The setup couldn't be more simple. Just download this repository and open it in `IntelliJ`.
@@ -44,7 +49,7 @@ When using IntelliJ, you only have to open the project, double click on the `pom
 
 #### CLI
 
-On the CLI, you simply have to execute `mvn install` in the root folder.
+On the CLI, you simply have to execute `./mvnw install` (Linux/MacOS) or `.\mvnw install` (Windows) in the root folder.
 
 ### Configuration
 
