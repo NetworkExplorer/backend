@@ -2,15 +2,12 @@
   <img alt="NetworkExplorer Logo" src="media/nwexp_logo.png" width="125" height="125" />
 </p>
 
-<h1 align="center">Network Explorer - BACKEND</h1>
+<h1 align="center">NetworkExplorer - backend</h1>
 
-## About
-
-The backend side of Network Explorer - a project that arose out of our Software Engineering subject
+The backend side of NetworkExplorer - a project that arose out of our Software Engineering subject. Made with Spring Boot
 
 ## Table of Contents
 
-- [About](#about)
 - [Table of Contents](#table-of-contents)
 - [Requirements](#requirements)
 - [Building the JAR](#building-the-jar)
