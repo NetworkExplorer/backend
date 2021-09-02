@@ -30,7 +30,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/api/v1/user/authenticate", "/api/v1/user/validate", "/api/v1/ping", "/exec", "/api/v1/download/**").permitAll()
                 .antMatchers(HttpMethod.OPTIONS).permitAll() //cors stuff sends options requests -> bearer cannot be set
                 .antMatchers("(?!/api/)").permitAll() // allow access to public folders for the frontend
-                .anyRequest().authenticated().and()
+                .antMatchers("/api/*").authenticated().and()
                 // make sure we use stateless session; session won't be used to
                 // store user's state.
                 .exceptionHandling().authenticationEntryPoint(jwtAuthenticationEntryPoint).and().sessionManagement()
