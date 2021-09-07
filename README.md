@@ -31,6 +31,8 @@ The backend side of NetworkExplorer - a project that arose out of our Software E
 
 It is as easy as running `./mvnw install clean` (Linux/MacOS) or `.\mvnw install clean` (Windows). The output JAR will be in the `target` directory. You can start the spring application with this command: `java -jar <path-to-jar> at.networkexplorer.backend.BackendApplication`. Your `application.properties` needs to be in the same directiory where you execute the command. An example configuration can be found in the [Configuration](#configuration) section.
 
+The complete installation process combined with the [frontend](https://github.com/NetworkExplorer/frontend) can be found [here](https://github.com/NetworkExplorer/NetworkExplorer)
+
 ## Development Setup
 
 The setup couldn't be more simple. Just download this repository and open it in `IntelliJ`.
